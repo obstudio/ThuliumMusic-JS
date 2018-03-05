@@ -1,12 +1,17 @@
 <template>
   <div id="app">
     <router-view/>
+    <footer-player/>
   </div>
 </template>
 
 <script>
+import FooterPlayer from './components/FooterPlayer'
 export default {
-  name: 'App'
+  name: 'App',
+  components: {
+    FooterPlayer
+  }
 }
 </script>
 
