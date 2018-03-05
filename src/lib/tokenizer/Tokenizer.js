@@ -194,7 +194,7 @@ const sDef = [
       {
         Type: 'Sfunc',
         Content: [
-          /^\^/,
+          /^\^$/,
           { Type: 'Subtrack' }
         ]
       }
@@ -686,7 +686,7 @@ const langDef = {
       }
     },
     {
-      regex: /^(\d+\.\d+|\d+\/\d+|Log2\(\d+\)([+-]\d+)?)/,
+      regex: /^-?(\d+\/\d+|\d+(\.\d+)?|Log2\(\d+\)([+-]\d+)?)/,
       action: {
         token: 'number',
         transform(num) {
@@ -763,7 +763,7 @@ const langDef = {
       }
     },
     {
-      regex: /^[^,)}[\]"]+/,
+      regex: /^-?(\d+\/\d+|\d+(\.\d+)?|Log2\(\d+\)([+-]\d+)?)/,
       action: {
         token: 'number',
         transform(num) {
@@ -785,7 +785,7 @@ const libDef = [
       const result = []
       const chordDefs = chords[1].split(/\r?\n/)
       for (const chordDef of chordDefs) {
-        const res = chordDef.match(/^([A-Za-z])\t+([^\t]+)\t+([^\t]+)/)
+        const res = chordDef.match(/^([A-Za-z])\t+([^\t]+\t+)?([^\t]+)/)
         if (res === null) continue
         const parts = res[3].split(',')
         const pitches = []
@@ -869,9 +869,9 @@ const libDef = [
 
 export default class Tokenizer {
   /**
-     *
-     * @param {string} track
-     */
+   *
+   * @param {string} track
+   */
   static tokenizeTrack(track) {
     track = track.trim()
     const stateStore = [[]]
@@ -1001,9 +1001,9 @@ export default class Tokenizer {
     })
   }
   /**
-     * Construct a tokenizer
-     * @param {string} content Tm string to tokenize
-     */
+   * Construct a tokenizer
+   * @param {string} content Tm string to tokenize
+   */
   constructor(content) {
     this.content = content
     this.include = []
