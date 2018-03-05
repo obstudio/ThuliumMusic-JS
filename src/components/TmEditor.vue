@@ -427,6 +427,12 @@ const LangDef = {
         }
       },
       {
+        regex: /[:>]/,
+        action: {
+          token: 'durOp-stac-volOp'
+        }
+      },
+      {
         regex: /\]/,
         action: {
           token: 'chordBracket',
