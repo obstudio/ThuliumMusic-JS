@@ -340,7 +340,7 @@ const LangDef = {
         }
       },
       {
-        regex: /[^,)}[\]"]+/,
+        regex: /\d+\.\d+|\d+\/\d+|Log2\(\d+\)([+-]\d+)?/,
         action: {
           token: 'number'
         }
