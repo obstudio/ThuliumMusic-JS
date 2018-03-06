@@ -2,11 +2,11 @@ export class Channel {
   constructor(audioContext) {
     this.audioContext = audioContext
     this.input = this.audioContext.createDynamicsCompressor()
-    this.input.threshold.value = -3
-    this.input.knee.value = 30
-    this.input.ratio.value = 12
-    this.input.attack.value = 0.05
-    this.input.release.value = 0.08
+    this.input.threshold.setValueAtTime(-3, 0)
+    this.input.knee.setValueAtTime(30, 0)
+    this.input.ratio.setValueAtTime(12, 0)
+    this.input.attack.setValueAtTime(0.05, 0)
+    this.input.release.setValueAtTime(0.08, 0)
     this.band32 = this.bandEqualizer(this.input, 32)
     this.band64 = this.bandEqualizer(this.band32, 64)
     this.band128 = this.bandEqualizer(this.band64, 128)

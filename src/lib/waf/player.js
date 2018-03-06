@@ -93,7 +93,7 @@ export default class Player {
     var envelope = this.findEnvelope(ctx, target, startWhen, waveDuration)
     this.setupEnvelope(ctx, envelope, zone, volume, startWhen, waveDuration, duration)
     envelope.audioBufferSourceNode = ctx.createBufferSource()
-    envelope.audioBufferSourceNode.playbackRate.value = playbackRate
+    envelope.audioBufferSourceNode.playbackRate.setValueAtTime(playbackRate, 0)
     if (slides && slides.length > 0) {
       envelope.audioBufferSourceNode.playbackRate.setValueAtTime(playbackRate, when)
       for (var i = 0; i < slides.length; i++) {
