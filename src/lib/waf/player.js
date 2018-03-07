@@ -2,6 +2,12 @@ import { Loader } from './loader'
 export default class Player {
   /** 构造方法，初始化Loader */
   constructor() {
+    /**
+     * 存储的增益节点
+     * @name Player#envelopes
+     * @type GainNode[]
+     * @default []
+     */
     this.envelopes = []
     this.loader = new Loader(this)
     this.onCacheFinish = null
@@ -11,8 +17,8 @@ export default class Player {
   }
 
   /**
-     * 辅助方法，用于构造Chord/Strum/Snap
-     */
+   * 辅助方法，用于构造Chord/Strum/Snap
+   */
   queueChord(ctx, target, preset, when, pitches, duration, volume, slides) {
     for (var i = 0; i < pitches.length; i++) {
       this.queueWaveTable(ctx, target, preset, when, pitches[i], duration, volume - Math.random() * 0.01, slides)
@@ -51,24 +57,19 @@ export default class Player {
   }
 
   /**
-     * 播放的基本方法
-     * @param {AudioContext} ctx
-     * @param {AudioDestinationNode} target
-     * @param {AudioFont} preset sf2转化得到的json音源对象
-     * @param {number} when 开始时间
-     * @param {number} pitch 音高
-     * @param {number} duration 持续时间
-     * @param {number} volume 音量
-     * @param {any[]} slides
-     * @returns {GainNode }
-     */
+   * 播放的基本方法
+   * @param {AudioContext} ctx
+   * @param {AudioDestinationNode} target
+   * @param {AudioFont} preset sf2转化得到的json音源对象
+   * @param {number} when 开始时间
+   * @param {number} pitch 音高
+   * @param {number} duration 持续时间
+   * @param {number} volume 音量
+   * @param {any[]} slides
+   * @returns {GainNode}
+   */
   queueWaveTable(ctx, target, preset, when, pitch, duration, volume, slides) {
-    if (volume) {
-      volume = 1.0 * volume
-    } else {
-      volume = 1.0
-    }
-    var zone = this.findZone(ctx, preset, pitch)
+    var zone = this.findZone(preset, pitch)
     if (!(zone.buffer)) {
       console.log('empty buffer ', zone)
       return
@@ -121,8 +122,15 @@ export default class Player {
   }
 
   /**
-     * setup attack-hold-decay-sustain-release envelop
-     */
+   * 建立attack-hold-decay-sustain-release的增益效果
+   * @param {AudioContext} ctx
+   * @param {GainNode} envelope
+   * @param {{}} zone 音源片段
+   * @param {number} volume 播放音量
+   * @param {number} when 开始时间
+   * @param {number} sampleDuration 样本时长
+   * @param {number} noteDuration 音符时长
+   */
   setupEnvelope(ctx, envelope, zone, volume, when, sampleDuration, noteDuration) {
     envelope.gain.setValueAtTime(this.noZeroVolume(0), ctx.currentTime)
     var lastTime = 0
@@ -159,37 +167,30 @@ export default class Player {
     }
     envelope.gain.cancelScheduledValues(when)
     envelope.gain.setValueAtTime(this.noZeroVolume(ahdsr[0].volume * volume), when)
-    for (var i = 0; i < ahdsr.length; i++) {
-      if (ahdsr[i].duration > 0) {
-        if (ahdsr[i].duration + lastTime > duration) {
-          var r = 1 - (ahdsr[i].duration + lastTime - duration) / ahdsr[i].duration
-          var n = lastVolume - r * (lastVolume - ahdsr[i].volume)
+    for (const e of ahdsr) {
+      if (e.duration > 0) {
+        if (e.duration + lastTime > duration) {
+          var r = 1 - (e.duration + lastTime - duration) / e.duration
+          var n = lastVolume - r * (lastVolume - e.volume)
           envelope.gain.linearRampToValueAtTime(this.noZeroVolume(volume * n), when + duration)
           break
         }
-        lastTime = lastTime + ahdsr[i].duration
-        lastVolume = ahdsr[i].volume
+        lastTime = lastTime + e.duration
+        lastVolume = e.volume
         envelope.gain.linearRampToValueAtTime(this.noZeroVolume(volume * lastVolume), when + lastTime)
       }
     }
     envelope.gain.linearRampToValueAtTime(this.noZeroVolume(0), when + duration + this.afterTime)
   }
 
+  /**
+   * 复用或新建一个增益节点
+   * @param {AudioContext} ctx
+   * @param {AudioDestinationNode} target
+   * @returns {GainNode} 增益节点
+   */
   findEnvelope(ctx, target/*, when , duration */) {
-    var envelope
-    for (const e of this.envelopes) {
-      if (e.target === target && ctx.currentTime > e.when + e.duration + 0.1) {
-        try {
-          e.audioBufferSourceNode.disconnect()
-          e.audioBufferSourceNode.stop(0)
-          e.audioBufferSourceNode = null
-        } catch (x) {
-          // audioBufferSourceNode is dead already
-        }
-        envelope = e
-        break
-      }
-    }
+    let envelope = this.envelopes.find((e) => e.target === target && ctx.currentTime > e.when + e.duration + 0.1)
     if (envelope === undefined) {
       envelope = ctx.createGain()
       envelope.target = target
@@ -203,59 +204,74 @@ export default class Player {
         }
       }
       this.envelopes.push(envelope)
+    } else {
+      try {
+        envelope.audioBufferSourceNode.disconnect()
+        envelope.audioBufferSourceNode.stop(0)
+        envelope.audioBufferSourceNode = null
+      } catch (x) {}
     }
     return envelope
   }
 
+  /**
+   * 生成音源
+   * @param {AudioContext} ctx
+   * @param {*} zone 音源片段
+   * @returns {void | Promise<void>} 同步或异步返回
+   */
   adjustZone(ctx, zone) {
-    if (!zone.buffer) {
-      zone.delay = 0
-      zone.loopStart = this.numValue(zone.loopStart, 0)
-      zone.loopEnd = this.numValue(zone.loopEnd, 0)
-      zone.coarseTune = this.numValue(zone.coarseTune, 0)
-      zone.fineTune = this.numValue(zone.fineTune, 0)
-      zone.originalPitch = this.numValue(zone.originalPitch, 6000)
-      zone.sampleRate = this.numValue(zone.sampleRate, 44100)
-      zone.sustain = this.numValue(zone.originalPitch, 0)
-      if (zone.sample) {
-        const decoded = atob(zone.sample)
-        zone.buffer = ctx.createBuffer(1, decoded.length / 2, zone.sampleRate)
-        var float32Array = zone.buffer.getChannelData(0)
-        var b1, b2, n
-        for (var i = 0; i < decoded.length / 2; i++) {
-          b1 = decoded.charCodeAt(i * 2)
-          b2 = decoded.charCodeAt(i * 2 + 1)
-          if (b1 < 0) {
-            b1 = 256 + b1
-          }
-          if (b2 < 0) {
-            b2 = 256 + b2
-          }
-          n = b2 * 256 + b1
-          if (n >= 65536 / 2) {
-            n = n - 65536
-          }
-          float32Array[i] = n / 65536.0
+    if (zone.buffer !== undefined) return
+    zone.delay = 0
+    zone.loopStart = this.numValue(zone.loopStart, 0)
+    zone.loopEnd = this.numValue(zone.loopEnd, 0)
+    zone.coarseTune = this.numValue(zone.coarseTune, 0)
+    zone.fineTune = this.numValue(zone.fineTune, 0)
+    zone.originalPitch = this.numValue(zone.originalPitch, 6000)
+    zone.sampleRate = this.numValue(zone.sampleRate, 44100)
+    zone.sustain = this.numValue(zone.originalPitch, 0)
+    if (zone.sample) {
+      const decoded = atob(zone.sample)
+      zone.buffer = ctx.createBuffer(1, decoded.length / 2, zone.sampleRate)
+      var float32Array = zone.buffer.getChannelData(0)
+      var b1, b2, n
+      for (var i = 0; i < decoded.length / 2; i++) {
+        b1 = decoded.charCodeAt(i * 2)
+        b2 = decoded.charCodeAt(i * 2 + 1)
+        if (b1 < 0) {
+          b1 = 256 + b1
         }
-      } else if (zone.file) {
-        var datalen = zone.file.length
-        var arraybuffer = new ArrayBuffer(datalen)
-        var view = new Uint8Array(arraybuffer)
-        const decoded = atob(zone.file)
-        var b
-        for (i = 0; i < decoded.length; i++) {
-          b = decoded.charCodeAt(i)
-          view[i] = b
+        if (b2 < 0) {
+          b2 = 256 + b2
         }
-        return new Promise((resolve, reject) => {
-          ctx.decodeAudioData(arraybuffer, resolve, reject)
-        }).then((buffer) => {
-          zone.buffer = buffer
-        })
+        n = b2 * 256 + b1
+        if (n >= 65536 / 2) {
+          n = n - 65536
+        }
+        float32Array[i] = n / 65536.0
       }
+    } else if (zone.file) {
+      var datalen = zone.file.length
+      var arraybuffer = new ArrayBuffer(datalen)
+      var view = new Uint8Array(arraybuffer)
+      const decoded = atob(zone.file)
+      var b
+      for (i = 0; i < decoded.length; i++) {
+        b = decoded.charCodeAt(i)
+        view[i] = b
+      }
+      return new Promise((resolve, reject) => {
+        ctx.decodeAudioData(arraybuffer, resolve, reject)
+      }).then((buffer) => {
+        zone.buffer = buffer
+      })
     }
   }
 
+  /**
+   * 取消尚在队列中的增益节点的播放事件
+   * @param {AudioContext} ctx
+   */
   cancelQueue(ctx) {
     for (const e of this.envelopes) {
       e.gain.cancelScheduledValues(0)
@@ -269,30 +285,42 @@ export default class Player {
     }
   }
 
+  /**
+   * 将所有的音源对象的二进制数据生成AudioBuffer
+   * @param {AudioContext} ctx
+   * @param {*} preset 音源对象
+   * @returns {Promise<void>} 异步生成AudioBuffer的音源对象后的Promise
+   */
   adjustPreset(ctx, preset) {
     return Promise.all(preset.zones.map((zone) => this.adjustZone(ctx, zone)))
   }
 
   /**
-     * zones must have been initialized
-     */
-  findZone(ctx, preset, pitch) {
-    return preset.zones.find((zone) => zone.keyRangeLow <= pitch && zone.keyRangeHigh + 1 >= pitch)
+   * 经过修改，现在传入的preset必须已经初始化（事实上是的）
+   * @param {*} preset 音源对象
+   * @param {number} pitch 需要播放的音高
+   * @returns {{}} 最适区间
+   */
+  findZone(preset, pitch) {
+    return preset.zones.find((z) => z.keyRangeLow <= pitch && z.keyRangeHigh + 1 >= pitch)
   }
 
+  /**
+   * 确保数值不小于一个确定值nearZero
+   * @param {number} n 一个可能很接近0或等于0的数
+   * @returns {number} nearZero与n的较大值
+   */
   noZeroVolume(n) {
-    if (n > this.nearZero) {
-      return n
-    } else {
-      return this.nearZero
-    }
+    return Math.max(n, this.nearZero)
   }
 
+  /**
+   * 返回数值或默认值
+   * @param {any} aValue 类型未知的一个变量
+   * @param {number} defValue aValue不为数字时的默认值
+   * @returns {number} 数值或默认值
+   */
   numValue(aValue, defValue) {
-    if (typeof aValue === 'number') {
-      return aValue
-    } else {
-      return defValue
-    }
+    return typeof aValue === 'number' ? aValue : defValue
   }
 }

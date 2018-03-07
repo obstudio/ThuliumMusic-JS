@@ -1,6 +1,10 @@
 export class Channel {
-  constructor(audioContext) {
-    this.audioContext = audioContext
+  /**
+   * ??
+   * @param {AudioContext} ctx
+   */
+  constructor(ctx) {
+    this.audioContext = ctx
     this.input = this.audioContext.createDynamicsCompressor()
     this.input.threshold.setValueAtTime(-3, 0)
     this.input.knee.setValueAtTime(30, 0)
@@ -17,7 +21,7 @@ export class Channel {
     this.band4k = this.bandEqualizer(this.band2k, 4096)
     this.band8k = this.bandEqualizer(this.band4k, 8192)
     this.band16k = this.bandEqualizer(this.band8k, 16384)
-    this.output = audioContext.createGain()
+    this.output = ctx.createGain()
     this.band16k.connect(this.output)
   }
 
