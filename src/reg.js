@@ -91,13 +91,13 @@ const LangDef = {
     ],
     Subtrack: [
       {
-        regex: /\d+\*|\/\d*:/,
+        regex: /\d+\*|\\\d*:/,
         action: {
           token: 'repeat'
         }
       },
       {
-        regex: /\//,
+        regex: /\/|\\/,
         action: {
           token: 'repeat'
         }

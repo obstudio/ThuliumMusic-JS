@@ -312,7 +312,7 @@ const langDef = {
       }
     },
     {
-      regex: /^(:\|\|:|:\|\||\|\|:|\||\/([\d,~\s])*:|\/)/,
+      regex: /^(:\|\|:|:\|\||\|\|:|\||\\([\d,~\s])*:|\\|\/)/,
       action: {
         cases: {
           ':||:': {
@@ -340,17 +340,30 @@ const langDef = {
               return {
                 Type: 'BarLine',
                 Skip: false,
-                Order: [0]
+                Order: [0],
+                Overlay: false
               }
             }
           },
-          '/': {
+          '\\': {
             token: 'skip',
             transform() {
               return {
                 Type: 'BarLine',
                 Skip: true,
-                Order: [0]
+                Order: [0],
+                Overlay: false
+              }
+            }
+          },
+          '/': {
+            token: 'ol',
+            transform() {
+              return {
+                Type: 'BarLine',
+                Skip: false,
+                Order: [0],
+                Overlay: true
               }
             }
           },
@@ -374,7 +387,8 @@ const langDef = {
               return {
                 Type: 'BarLine',
                 Skip: false,
-                Order: order
+                Order: order,
+                Overlay: false
               }
             }
           }

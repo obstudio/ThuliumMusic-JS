@@ -1,10 +1,6 @@
 import { BarLengthError, DupChordError, TraceError, VolumeError, UndefinedTokenError } from './Error'
 
 export class TrackParser {
-  /**
-     *
-     * @param {Tm.ParsedTrack} trackResult
-     */
   static processPedal(trackResult) {
     const content = trackResult.Content
     let press
@@ -36,11 +32,6 @@ export class TrackParser {
     }
   }
 
-  /**
-     *
-     * @param {Tm.Track} track
-     * @param {Tm.GlobalSetting} sectionSettings
-     */
   constructor(track, sectionSettings, libraries, isSubtrack = false) {
     this.isSubtrack = isSubtrack
     this.ID = track.ID
@@ -57,9 +48,6 @@ export class TrackParser {
     }
   }
 
-  /**
-     * @returns {Tm.ParsedTrack[]}
-     */
   parseTrack() {
     this.preprocess()
     const trackResult = this.parseTrackContent()
@@ -101,7 +89,6 @@ export class TrackParser {
       if (token.Type === 'Macrotrack' && token.Name in this.Libraries.Track) {
         const macro = this.Libraries.Track[token.Name]
         this.Content.splice(pointer, 1, ...macro)
-        // pointer += macro.length - 1
         length += macro.length - 1
       } else {
         pointer += 1
@@ -127,10 +114,6 @@ export class TrackParser {
     }
   }
 
-  /**
-     * parse track content
-     * @returns {Tm.ParsedTrack}
-     */
   parseTrackContent() {
     const result = []
     let subtrack
@@ -218,6 +201,9 @@ export class TrackParser {
           }
           rightIncomplete = 0
         }
+        if (token.Overlay) {
+          this.Context.startTime = 0
+        }
         break
       case 'PedalPress':
       case 'PedalRelease':
@@ -257,14 +243,6 @@ export class TrackParser {
           Warnings: this.Warnings
         }
       }
-      /*             if (leftIncomplete + rightIncomplete !== this.Settings.Bar) {
-                if (leftIncomplete !== this.Settings.Bar) {
-                    this.Context.warnings.push(new BarLengthError(this.ID, [0], leftIncomplete))
-                }
-                if (rightIncomplete && rightIncomplete !== this.Settings.Bar) {
-                    this.Context.warnings.push(new BarLengthError(this.ID, [-1], rightIncomplete))
-                }
-            } */
     }
     return returnObj
   }
@@ -273,11 +251,6 @@ export class TrackParser {
     return bar === undefined || (bar - this.Settings.Bar) < 0.0000001 || bar === 0
   }
 
-  /**
-     *
-     * @param {Tm.NoteToken} note
-     * @returns {Tm.ParsedNote[]}
-     */
   parseNote(note) {
     const pitches = []
     const pitchQueue = []
@@ -360,11 +333,6 @@ export class TrackParser {
     return [...this.Settings.Volume, ...new Array(total - vol).fill(this.Settings.Volume[vol - 1])].map((v) => v * scale)
   }
 
-  /**
-    *
-    * @param {Tm.Pitch} pitch
-    * @returns {number[]}
-    */
   parseChord(pitch) {
     return pitch.Chord.split('').reduce((pitches, chord) => {
       const operator = this.Libraries.Chord[chord]
@@ -385,11 +353,6 @@ export class TrackParser {
     }, [0])
   }
 
-  /**
-     *
-     * @param {Tm.Pitch} pitch
-     * @returns {number[]}
-     */
   parsePitch(pitch, base) {
     const delta = this.parseDeltaPitch(base) + TrackParser.pitchDict[pitch.Degree] + this.parseDeltaPitch(pitch.PitOp)
     return this.Settings.Key.map((key) => key + delta)
@@ -399,11 +362,6 @@ export class TrackParser {
     return pitchOperators.split('').reduce((sum, cur) => sum + TrackParser.pitchOperatorDict[cur], 0)
   }
 
-  /**
-     *
-     * @param {Tm.NoteToken} note
-     * @returns {number}
-     */
   parseBeat(note) {
     let duration = 1
     let pointer = 0
