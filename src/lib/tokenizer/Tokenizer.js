@@ -565,7 +565,7 @@ const langDef = {
         transform(subtrack, content) {
           let repeat
           if (subtrack[1] !== undefined) {
-            repeat = subtrack[1].slice(0, -1)
+            repeat = -subtrack[1].slice(0, -1)
           } else {
             const pos = content.filter((e) => e.Type === 'BarLine' && e.Order[0] > 0)
             if (pos.length > 0) {
