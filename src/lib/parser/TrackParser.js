@@ -1,4 +1,4 @@
-import { BarLengthError, DupChordError, TraceError, VolumeError, UndefinedTokenError } from './Error'
+import { TmError } from './Error'
 
 export class TrackParser {
   static processPedal(trackResult) {
@@ -70,7 +70,7 @@ export class TrackParser {
           Content: trackResult.Content.map((note) => {
             let vol = note.Volume * instrument.Proportion
             if (vol > 1) {
-              meta.Warnings.push(new VolumeError(this.ID, [], vol))
+              meta.Warnings.push(new TmError(TmError.Types.Note.VolumeLimit, [], {Expected: 1, Actual: vol})) // FIXME: index
               vol = 1
             }
             delete note.__oriDur
@@ -171,7 +171,7 @@ export class TrackParser {
           } else {
             rightIncomplete += subtrack.Meta.Incomplete[0]
             if (!this.isLegalBar(rightIncomplete)) {
-              this.Context.warnings.push(new BarLengthError(this.ID, [this.Content.indexOf(token)], rightIncomplete))
+              this.Context.warnings.push(new TmError(TmError.Types.Track.BarLength, [this.Content.indexOf(token)], {Expected: this.Settings.Bar, Actual: rightIncomplete}))
             }
             rightIncomplete = subtrack.Meta.Incomplete[1]
             if (this.isLegalBar(rightIncomplete)) {
@@ -197,7 +197,7 @@ export class TrackParser {
         leftFirst = false
         if (token.Terminal !== true) {
           if (!this.isLegalBar(rightIncomplete)) {
-            this.Context.warnings.push(new BarLengthError(this.ID, [this.Content.indexOf(token)], rightIncomplete))
+            this.Context.warnings.push(new TmError(TmError.Types.Track.BarLength, [this.Content.indexOf(token)], {Expected: this.Settings.Bar, Actual: rightIncomplete}))
           }
           rightIncomplete = 0
         }
@@ -213,7 +213,7 @@ export class TrackParser {
         })
         break
       case 'Undefined':
-        this.Context.warnings.push(new UndefinedTokenError(this.ID, [this.Content.indexOf(token)], token))
+        this.Context.warnings.push(new TmError(TmError.Types.Track.Undefined, [this.Content.indexOf(token)], {Actual: token}))
         break
       case 'Clef':
       case 'Whitespace':
@@ -268,7 +268,7 @@ export class TrackParser {
         pitches.push(...[].concat(...queue.map((pitch) => this.Settings.Key.map((key) => key - this.Settings.Key[0] + pitch + delta))))
         volumes.push(...[].concat(...new Array(queue.length).fill(this.getVolume(note.VolOp))))
       } else {
-        this.Context.warnings.push(new TraceError(this.ID, [this.Content.indexOf(note)], this.Settings.Trace))
+        this.Context.warnings.push(new TmError(TmError.Types.Note.NoPrevious, [this.Content.indexOf(note)], {Expected: this.Settings.Trace, Actual: this.Context.pitchQueue.length}))
       }
     } else {
       for (const pitch of note.Pitches) {
@@ -291,7 +291,7 @@ export class TrackParser {
       }
     }
     if (new Set(pitches).size !== pitches.length) {
-      this.Context.warnings.push(new DupChordError(this.ID, [this.Content.indexOf(note)], pitches))
+      this.Context.warnings.push(new TmError(TmError.Types.Note.Reduplicate, [this.Content.indexOf(note)], {Actual: pitches}))
     }
     if (pitchQueue.length > 0) {
       this.Context.pitchQueue.push(pitchQueue.slice(0))

@@ -1,7 +1,7 @@
 import Loader from './LibLoader'
 import GlobalSetting from './GlobalSetting'
 import { TrackParser } from './TrackParser'
-import { DiffDurError } from './Error'
+import { TmError } from './Error'
 const EPSILON = 0.0000000001
 
 export default class Parser {
@@ -21,7 +21,8 @@ export default class Parser {
       Sections: undefined
     }
     this.sectionContext = {
-      Settings: new GlobalSetting()
+      Settings: new GlobalSetting(),
+      PrevFin: undefined
     }
     this.order = []
     this.adapter = adapter
@@ -137,7 +138,20 @@ export default class Parser {
     }
     const max = Math.max(...sec.Tracks.map((track) => track.Meta.Duration))
     if (!sec.Tracks.every((track) => Math.abs(track.Meta.Duration - max) < EPSILON)) {
-      sec.Warnings.push(new DiffDurError(sec.ID, this.tokenizedData.Sections.indexOf(section)))
+      sec.Warnings.push(new TmError(TmError.Types.Section.DiffDuration, [], {Expected: sec.Tracks.map(() => max), Actual: sec.Tracks.map((l) => l.Meta.Duration)}))
+    }
+    const maxBarIni = Math.max(...sec.Tracks.map((track) => track.Meta.Incomplete[0]))
+    const maxBarFin = Math.max(...sec.Tracks.map((track) => track.Meta.Incomplete[1]))
+    if (!sec.Tracks.every((track) => track.Meta.Incomplete[0] === maxBarIni)) {
+      sec.Warnings.push(new TmError(TmError.Types.Section.InitiativeBar, [], {Expected: maxBarIni, Actual: sec.Tracks.map((l) => l.Meta.Incomplete[0])}))
+    } else if (!sec.Tracks.every((track) => track.Meta.Incomplete[1] === maxBarFin)) {
+      sec.Warnings.push(new TmError(TmError.Types.Section.FinalBar, [], {Expected: maxBarFin, Actual: sec.Tracks.map((l) => l.Meta.Incomplete[1])}))
+    } else if (this.sectionContext.PrevFin === undefined) {
+      this.sectionContext.PrevFin = maxBarFin
+    } else if (this.sectionContext.PrevFin + maxBarIni !== this.sectionContext.Settings.Bar) {
+      const expected = this.sectionContext.Settings.Bar - this.sectionContext.PrevFin
+      sec.Warnings.push(new TmError(TmError.Types.Section.Mismatch, [], {Expected: expected, Actual: sec.Tracks.map((l) => l.Meta.Incomplete[0])}))
+      this.sectionContext.PrevFin = maxBarFin
     }
     return sec
   }
