@@ -271,7 +271,7 @@ export class TrackParser {
   }
 
   isLegalBar(bar) {
-    return bar === undefined || (bar - this.Settings.Bar) < 0.0000001 || bar === 0
+    return bar === undefined || Math.abs(bar - this.Settings.Bar) < 0.0000001 || bar === 0
   }
 
   parseNote(note) {
