@@ -31,7 +31,7 @@ function audioLibVar(instr) {
 export class Player {
   constructor(value) {
     this.value = value
-    const result = new Parser(new Tokenizer(value).tokenize(), new MIDIAdapter()).parse()
+    const result = new MIDIAdapter().adapt(new Parser(new Tokenizer(value).tokenize()).parse())
     this.tracks = result.tracks
     this.time = result.time
     this.dueTime = undefined

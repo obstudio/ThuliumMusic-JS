@@ -1,20 +1,17 @@
 import Loader from './LibLoader'
 import GlobalSetting from './GlobalSetting'
 import { TrackParser } from './TrackParser'
-import { TmError } from './Error'
+import TmError from './Error'
 const EPSILON = 0.0000000001
 
 export default class Parser {
   /**
-     * Tm Parser
-     * @param {Tm.TokenizedData} tokenizedData 经过tok的JSON对象
-     * @param {Tm.Adapter} adapter 可选的Adapter
-     * @example
-     * new Parser(tokenizedData)
-     * new Parser(tokenizedData, new MIDIAdapter())
-     * new Parser(tokenizedData, new MMAAdapter())
-     */
-  constructor(tokenizedData, adapter = undefined) {
+   * Tm Parser
+   * @param {Tm.TokenizedData} tokenizedData 经过tok的JSON对象
+   * @example
+   * new Parser(tokenizedData)
+   */
+  constructor(tokenizedData) {
     this.tokenizedData = tokenizedData
     this.libraries = new Loader(this.tokenizedData.Library).load()
     this.result = {
@@ -25,7 +22,6 @@ export default class Parser {
       PrevFin: undefined
     }
     this.order = []
-    this.adapter = adapter
   }
 
   parse() {
@@ -34,12 +30,7 @@ export default class Parser {
     this.order.forEach((index) => {
       result.push(this.parseSection(this.tokenizedData.Sections[index]))
     })
-    this.result = result
-    if (this.adapter === undefined) {
-      return result
-    } else {
-      return this.adapter.adapt(result)
-    }
+    return result
   }
 
   generateOrder() {
@@ -111,9 +102,9 @@ export default class Parser {
   }
 
   /**
-     * parse section
-     * @param {Tm.Section} section
-     */
+   * parse section
+   * @param {Tm.Section} section
+   */
   parseSection(section) {
     section.Settings.filter((token) => token.Type === 'FUNCTION')
       .forEach((token) => this.libraries.FunctionPackage.applyFunction({ Settings: this.sectionContext.Settings, Context: {} }, token))

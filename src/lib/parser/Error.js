@@ -1,4 +1,4 @@
-export class TmError {
+export default class TmError {
   constructor(err, pos, arg) {
     this.name = err
     this.arg = arg

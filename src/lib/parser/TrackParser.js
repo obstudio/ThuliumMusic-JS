@@ -1,4 +1,4 @@
-import { TmError } from './Error'
+import TmError from './Error'
 import { drumDict, instrDict } from '../config'
 
 let currentType = 0
