@@ -264,6 +264,136 @@ const langDef = {
       }
     }
   ],
+  LineLocal: [
+    {
+      regex: /^!/,
+      action: {
+        token: '@pass',
+        next: '@pop'
+      }
+    },
+    {
+      regex: /^([A-Za-z]\w*)\s*\(/,
+      action: {
+        token: 'func',
+        next: 'Func',
+        transform(func, content) {
+          return {
+            Type: 'FUNCTION',
+            Name: func[1],
+            Argument: content
+          }
+        }
+      }
+    },
+    {
+      regex: /^\((\w+):([\d-]+)\)/,
+      action: {
+        token: 'sfunc',
+        transform(match) {
+          return {
+            Type: 'FUNCTION',
+            Name: match[1],
+            Argument: [
+              {
+                Type: 'Number',
+                Content: Number(match[2])
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      regex: /^\((\d+)\/(\d+)\)/,
+      action: {
+        token: 'sfunc',
+        transform(match) {
+          return {
+            Type: 'FUNCTION',
+            Name: 'BarBeat',
+            Argument: [
+              {
+                Type: 'Number',
+                Content: Number(match[1])
+              },
+              {
+                Type: 'Number',
+                Content: Number(match[2])
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      regex: /^\(1=([A-G',b#]+)\)/,
+      action: {
+        token: 'sfunc',
+        transform(match) {
+          return {
+            Type: 'FUNCTION',
+            Name: 'KeyOct',
+            Argument: [
+              {
+                Type: 'String',
+                Content: match[1]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      regex: /^\((\d+)%\)/,
+      action: {
+        token: 'sfunc',
+        transform(match) {
+          return {
+            Type: 'FUNCTION',
+            Name: 'Vol',
+            Argument: [
+              {
+                Type: 'Number',
+                Content: Number(match[1])
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      regex: /^\((\d+)\)/,
+      action: {
+        token: 'sfunc',
+        transform(match) {
+          return {
+            Type: 'FUNCTION',
+            Name: 'Spd',
+            Argument: [
+              {
+                Type: 'Number',
+                Content: Number(match[1])
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      regex: /^\(/,
+      action: {
+        token: 'sfunc',
+        next: 'Dynamic',
+        transform(_, content) {
+          return {
+            Type: 'Sfunc',
+            Content: content
+          }
+        }
+      }
+    }
+  ],
   root: [
     {
       regex: /^([0-7x%])([',#b]*)([A-Zac-wyz]*)([',#b]*)([-_.=]*)(`*)([:>]*)/,
@@ -391,6 +521,19 @@ const langDef = {
                 Overlay: false
               }
             }
+          }
+        }
+      }
+    },
+    {
+      regex: /^!/,
+      action: {
+        token: 'local',
+        next: 'LineLocal',
+        transform(_, content) {
+          return {
+            Type: 'Setting',
+            Settings: content
           }
         }
       }
@@ -1008,7 +1151,7 @@ export default class Tokenizer {
   }
 
   static isHeadTrack(track) {
-    const heads = ['Volta', 'RepeatBegin', 'RepeatEnd']
+    const heads = ['Volta', 'RepeatBegin', 'RepeatEnd', 'Setting']
     const settings = ['ConOct', 'Vol', 'Spd', 'Key', 'Oct', 'KeyOct', 'Beat', 'Bar', 'BarBeat', 'Dur', 'Acct', 'Light', 'Seg', 'Port', 'Trace', 'FadeIn', 'FadeOut', 'Rev', 'Ferm', 'Stac']
     return track.every((element) => {
       return heads.includes(element.Type) || (element.Type === 'FUNCTION' && settings.includes(element.Name))
@@ -1050,7 +1193,13 @@ export default class Tokenizer {
             Content: tra
           })
         } else if (Tokenizer.isHeadTrack(tra)) {
-          sec.Settings.push(...tra)
+          for (const tok of tra) {
+            if (tok.Type === 'Setting') {
+              sec.Settings.push(...tok.Settings)
+            } else {
+              this.result.Sections.push(tok)
+            }
+          }
         } else {
           sec.Tracks.push({
             ID: null,
