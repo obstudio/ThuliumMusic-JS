@@ -1179,6 +1179,7 @@ export default class Tokenizer {
     this.split()
     for (const section of this.sections) {
       const sec = {
+        Type: 'Section',
         Settings: [],
         Tracks: []
       }
