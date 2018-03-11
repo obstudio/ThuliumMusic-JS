@@ -28,7 +28,12 @@ export default class Parser {
     const result = []
     this.generateOrder()
     this.order.forEach((index) => {
-      result.push(this.parseSection(this.tokenizedData.Sections[index]))
+      const part = this.tokenizedData.Sections[index]
+      if (part.Type === 'Section') {
+        result.push(this.parseSection())
+      } else {
+        this.libraries.FunctionPackage.applyFunction({ Settings: this.sectionContext.Settings, Context: {} }, part)
+      }
     })
     return result
   }
@@ -106,13 +111,14 @@ export default class Parser {
    * @param {Tm.Section} section
    */
   parseSection(section) {
+    const settings = this.sectionContext.Settings.extend()
     section.Settings.filter((token) => token.Type === 'FUNCTION')
-      .forEach((token) => this.libraries.FunctionPackage.applyFunction({ Settings: this.sectionContext.Settings, Context: {} }, token))
+      .forEach((token) => this.libraries.FunctionPackage.applyFunction({ settings, Context: {} }, token))
     const instrStatistic = {}
     const sec = {
       ID: section.ID,
       Tracks: [].concat(...section.Tracks.map((track) => {
-        const tempTracks = new TrackParser(track, this.sectionContext.Settings, this.libraries).parseTrack()
+        const tempTracks = new TrackParser(track, settings, this.libraries).parseTrack()
         for (const tempTrack of tempTracks) {
           if (tempTrack.Instrument in instrStatistic) {
             instrStatistic[tempTrack.Instrument] += 1
@@ -143,8 +149,8 @@ export default class Parser {
     }
     if (fin && this.sectionContext.PrevFin === undefined) {
       this.sectionContext.PrevFin = maxBarFin
-    } else if (fin && ini && this.sectionContext.PrevFin + maxBarIni !== this.sectionContext.Settings.Bar) {
-      const expected = this.sectionContext.Settings.Bar - this.sectionContext.PrevFin
+    } else if (fin && ini && this.sectionContext.PrevFin + maxBarIni !== settings.Bar) {
+      const expected = settings.Bar - this.sectionContext.PrevFin
       sec.Warnings.push(new TmError(TmError.Types.Section.Mismatch, [], {Expected: expected, Actual: sec.Tracks.map((l) => l.Meta.Incomplete[0])}))
       this.sectionContext.PrevFin = maxBarFin
     }
