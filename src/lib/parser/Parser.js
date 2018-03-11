@@ -39,70 +39,110 @@ export default class Parser {
   }
 
   generateOrder() {
-    const temp = this.tokenizedData.Sections.map((section) => {
-      const vol = section.Settings.find((setting) => setting.Type === 'Volta')
-      let volta
-      if (vol) {
-        volta = vol.Order
-      } else {
-        volta = undefined
-      }
-      return {
-        RepeatBegin: !!section.Settings.find((setting) => setting.Type === 'RepeatBegin'),
-        RepeatEnd: !!section.Settings.find((setting) => setting.Type === 'RepeatEnd'),
-        Volta: volta
-      }
-    })
-    const length = temp.length
+    const secs = this.tokenizedData.Sections
+    const length = secs.length
     let pointer = 0
     let repeatBeginIndex = 0
     let order = 1
-    let skip = true
+    let skip = false
     while (pointer < length) {
-      if (temp[pointer].RepeatEnd) {
-        if (skip) temp[pointer].RepeatEnd = false
+      const element = secs[pointer]
+      switch (element.Type) {
+      case 'RepeatEnd':
         if (order === 1) {
-          pointer = repeatBeginIndex
+          pointer = repeatBeginIndex + 1
           order += 1
           continue
         } else {
-          let pointer1 = repeatBeginIndex
+          let pointer1 = repeatBeginIndex + 1
           let flag = false
           while (pointer1 < length) {
-            if (temp[pointer1].RepeatBegin) break
-            if (temp[pointer1].Volta && temp[pointer1].Volta.indexOf(order + 1) !== -1) {
+            if (secs[pointer1].Type === 'RepeatBegin') break
+            if (secs[pointer1].Type === 'Volta' && secs[pointer1].Order.indexOf(order + 1) !== -1) {
               flag = true
               break
             }
             pointer1 += 1
           }
           if (flag) {
-            pointer = repeatBeginIndex
+            pointer = repeatBeginIndex + 1
             order += 1
             continue
           } else {
-            this.order.push(pointer)
             pointer += 1
           }
         }
-      }
-      if (temp[pointer].RepeatBegin) {
+        break
+      case 'RepeatBegin':
         repeatBeginIndex = pointer
-        temp[pointer].RepeatBegin = false
+        pointer += 1
         order = 1
-      } else if (temp[pointer].Volta) {
-        if (temp[pointer].Volta.indexOf(order) === -1) {
+        break
+      case 'Volta':
+        if (element.Order.indexOf(order) === -1) {
+          skip = true
           pointer += 1
         } else {
-          temp[pointer].Volta.splice(temp[pointer].Volta.indexOf(order), 1)
-          skip = (temp[pointer].Volta.length === 0)
-          this.order.push(pointer)
+          skip = false
+          // element.Order.splice(element.Order.indexOf(order), 1)
+          // skip = (element.Order.length === 0)
+          // this.order.push(pointer)
           pointer += 1
         }
-      } else {
-        this.order.push(pointer)
+        break
+      case 'Section':
+      case 'FUNCTION':
+        if (!skip) this.order.push(pointer)
+        pointer += 1
+        break
+      default:
         pointer += 1
       }
+
+      // if (element.Type === 'RepeatEnd') {
+      //   if (skip) element.Type = ''
+      //   if (order === 1) {
+      //     pointer = repeatBeginIndex
+      //     order += 1
+      //     continue
+      //   } else {
+      //     let pointer1 = repeatBeginIndex
+      //     let flag = false
+      //     while (pointer1 < length) {
+      //       if (secs[pointer1].Type === 'RepeatBegin') break
+      //       if (secs[pointer1].Type === 'Volta' && secs[pointer1].Order.indexOf(order + 1) !== -1) {
+      //         flag = true
+      //         break
+      //       }
+      //       pointer1 += 1
+      //     }
+      //     if (flag) {
+      //       pointer = repeatBeginIndex
+      //       order += 1
+      //       continue
+      //     } else {
+      //       // this.order.push(pointer)
+      //       pointer += 1
+      //     }
+      //   }
+      // } else if (element.Type === 'RepeatBegin') {
+      //   repeatBeginIndex = pointer
+      //   element.Type = ''
+      //   pointer += 1
+      //   order = 1
+      // } else if (element.Type === 'Volta') {
+      //   if (element.Order.indexOf(order) === -1) {
+      //     pointer += 1
+      //   } else {
+      //     element.Order.splice(element.Order.indexOf(order), 1)
+      //     skip = (element.Order.length === 0)
+      //     // this.order.push(pointer)
+      //     pointer += 1
+      //   }
+      // } else {
+      //   if (element.Type !== '') this.order.push(pointer)
+      //   pointer += 1
+      // }
     }
   }
 
