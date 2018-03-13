@@ -42,17 +42,56 @@ export default class Parser {
     const secs = this.tokenizedData.Sections
     const length = secs.length
     let pointer = 0
-    let repeatBeginIndex = 0
-    let order = 1
+    let repeatBeginIndex = []
+    let segnoIndex = null
+    let order = []
+    let volta = []
     let skip = false
     while (pointer < length) {
       const element = secs[pointer]
       switch (element.Type) {
-      case 'RepeatEnd':
-        break
       case 'RepeatBegin':
+        repeatBeginIndex.push(pointer)
+        order.push(1)
+        break
+      case 'RepeatEnd':
+        if (order.length == 0) {
+          repeatBeginIndex.push(-1)
+          order.push(1)
+        }
+        if (volta.length > 0) {
+          if (volta.indexOf(order + 1) == -1 && ...) // 查找之后的第一个 Volta 里是否不含下一个 index
+          order[-1]++
+          index = repeatBeginIndex[-1]
+          volta = []
+        } else {
+          if (order[-1] == 1) {
+            order[-1]++
+            index = repeatBeginIndex[-1]
+          } else {
+            repeatBeginIndex.pop()
+            order.pop()
+          }
+        }
         break
       case 'Volta':
+        if (element.Volta.indexOf(order) == -1) {
+
+        } else {
+          volta = element.Volta
+        }
+        break
+      case 'Segno':
+        if (segnoIndex == null) {
+          segnoIndex = pointer
+        }
+        break
+      case 'DaCapo':
+        break
+      case 'DaSegno':
+        if (skip) {
+          
+        }
         break
       case 'Section':
       case 'FUNCTION':
