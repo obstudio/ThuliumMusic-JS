@@ -58,7 +58,8 @@ export default {
     //   return true
     // })
     md.block.ruler.before('table', 'usage', (state, startLine, endLine, silent) => {
-      var ch, tmp, token, level,
+      /* eslint-disable-next-line one-var */
+      var ch, token, level,
         pos = state.bMarks[startLine] + state.tShift[startLine],
         max = state.eMarks[startLine]
 
@@ -95,7 +96,8 @@ export default {
       return true
     })
     md.block.ruler.before('table', 'wrap', (state, startLine, endLine, silent) => {
-      var ch, tmp, token, level,
+      /* eslint-disable-next-line one-var */
+      var ch, token,
         pos = state.bMarks[startLine] + state.tShift[startLine],
         max = state.eMarks[startLine]
 

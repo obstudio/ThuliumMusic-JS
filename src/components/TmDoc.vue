@@ -1,14 +1,12 @@
 <template>
-  <div class="container">
-    <div class="row">
-      <div class="col-sm-3" style="padding-top: 15%">
+  <el-row :gutter="30">
+    <el-col :span="6">
         <tm-doc-directory :items="items"></tm-doc-directory>
-      </div>
-      <div class="col-sm-9" style="padding-top: 5%">
+    </el-col>
+    <el-col :span="18">
         <tm-doc-container :doc="doc"></tm-doc-container>
-      </div>
-    </div>
-  </div>
+    </el-col>
+  </el-row>
 </template>
 
 <script>

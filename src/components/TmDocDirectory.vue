@@ -1,25 +1,21 @@
 <template>
-  <b-nav vertical class="nav-pills">
-    <b-nav-item v-for="(item, index) in items" :key="index" :to="makeURL(item)" :active="active === index" @click="toggle(index)">
-      {{item}}
-    </b-nav-item>
-  </b-nav>
+<el-menu default-active="1" :router="true">
+  <el-menu-item v-for="(item, index) in items" :key="index" :index="makeURL(item)">
+    <i class="el-icon-menu"></i>
+    <span slot="title">{{item}}</span>
+  </el-menu-item>
+</el-menu>
 </template>
 
 <script>
 export default {
   name: 'TmDocDirectory',
   data() {
-    return {
-      active: 0
-    }
+    return {}
   },
   methods: {
     makeURL (name) {
       return `/doc/${name}`
-    },
-    toggle (index) {
-      this.active = index
     }
   },
   props: ['items']
