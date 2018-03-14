@@ -40,16 +40,16 @@ export default class Parser {
 
   generateOrder() {
     const secs = this.tokenizedData.Sections
-    this.tokenizedData.Sections = []
+    this.tokenizedData.Sections = [] // 一会儿展开后还存这里面
     const length = secs.length
     let pointer = 0
-    let repeatBeginIndex = []
+    let repeatBeginIndex = [] // 用数组存储嵌套反复每次开始的位置
     let segnoIndex = null
     let codaIndex = null
-    let order = []
-    let volta = []
-    let isCoda = false
-    let skip = false
+    let order = [] // 嵌套反复每次反复的次数
+    let volta = [] // 存储当前小房子反复跳跃记号对应的反复次数
+    let isCoda = false // 是否是第二次出现 Coda（第一次不必记录）
+    let skip = false // 是否是大反复的第二次反复
     while (pointer < length) {
       const element = secs[pointer]
       switch (element.Type) {
@@ -58,20 +58,20 @@ export default class Parser {
         order.push(1)
         break
       case 'RepeatEnd':
-        if (order.length == 0) {
+        if (order.length == 0) { // 无反复开始记号，即为从头反复
           repeatBeginIndex.push(-1)
           order.push(1)
         }
-        if (volta.length > 0) {
-          if (volta.indexOf(order + 1) == -1 && (secs[pointer + 1].Type != "Volta" || secs[pointer + 1].Volta.indexOf(order + 1) == -1)) {
+        if (volta.length > 0) { // 当前在小房子里
+          if (volta.indexOf(order + 1) == -1 && (secs[pointer + 1].Type != 'Volta' || secs[pointer + 1].Volta.indexOf(order + 1) == -1)) { // 判断是否还有下一次反复，没有则终止反复
             repeatBeginIndex.pop()
             order.pop()
-          } else {
+          } else { // 还有下一次反复
             order[-1]++
             index = repeatBeginIndex[-1]
             volta = []
           }
-        } else {
+        } else { // 没有小房子，则反复两次
           if (order[-1] == 1) {
             order[-1]++
             index = repeatBeginIndex[-1]
@@ -82,8 +82,28 @@ export default class Parser {
         }
         break
       case 'Volta':
-        if (element.Volta.indexOf(order) == -1) {
-          // 跳到下一个 Volta 的位置
+        if (element.Volta.indexOf(order) == -1) { // 反复跳跃记号不是当前反复次数
+          let pointer1 = pointer + 1
+          let nest = 1
+          while (pointer1 < length && nest > 0) { // 寻找匹配的反复结束记号
+            switch (secs[pointer1].Type) {
+            case 'RepeatBegin':
+              nest++
+              break
+            case 'RepeatEnd':
+              nest--
+              break
+            case 'Volta':
+              // 对于带反复跳跃记号的反复中又含带反复跳跃记号的反复的情况，会引起严重的歧义，并导致错误匹配 RepeatEnd，最好能报错阻止
+              break
+            }
+            pointer1++
+          }
+          if (nest == 0) {
+            pointer = pointer1 - 1 // 指向匹配的反复结束记号
+          } else {
+            // 报个错
+          }
         } else {
           volta = element.Volta
         }
