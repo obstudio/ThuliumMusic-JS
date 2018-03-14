@@ -1,39 +1,44 @@
 <template>
   <div class="footer-player">
-    <b-progress :value="Time" :max="TotalTime" height="5px" class="progressbar"></b-progress>
-    <b-navbar fixed="bottom" type="dark" variant="dark" style="padding: 0rem">
-      <b-navbar-brand href="#" style="padding: 0rem">
-        <b-img blank blank-color="#66CCFF" width="75" height="75"></b-img>
-      </b-navbar-brand>
-      <b-nav-item>
-        <div>
-          <b-progress :value="Time" :max="TotalTime" height="5px"></b-progress>    
-        </div>
-      </b-nav-item>
-    </b-navbar>
+    <el-progress :percentage="TimePercentage" class="play-progress"></el-progress>
+    <el-container class="play-bar">
+      <el-aside width="80px" style="height: 84px" >
+        <img src="https://ob-studio.cn/assets/images/icon/obstudio.png" width="80" height="80">
+      </el-aside>
+      <el-main style="height: 80px">
+
+      </el-main>
+    </el-container>
   </div>
 </template>
+
+<style scoped>
+  .play-bar {
+    position: fixed;
+    right: 0;
+    left: 0;
+    bottom: -4px;
+  }
+  .play-progress {
+    position: fixed;
+    right: 0;
+    left: 0;
+    bottom: 75px;
+    z-index: 1024;
+    padding: 0;
+  }
+  .el-aside {
+    padding: 0;
+  }
+</style>
 
 <script>
 export default {
   name: 'FooterPlayer',
   data () {
     return {
-      Time: 75,
-      TotalTime: 100
+      TimePercentage: 0.75
     }
   }
 }
 </script>
-
-<style scoped>
-  .progressbar {
-    color: #000AE9; 
-    background-color: #6A6A6A;
-    position: fixed;
-    right: 0;
-    left: 0;
-    bottom: 75px;
-  }
-</style>
-

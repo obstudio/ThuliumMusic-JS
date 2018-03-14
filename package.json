@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "bootstrap-vue": "^2.0.0-rc.1",
+    "element-ui": "^2.2.1",
     "vue": "^2.5.13",
     "vue-router": "^3.0.1"
   },
