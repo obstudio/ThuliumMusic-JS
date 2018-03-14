@@ -40,12 +40,15 @@ export default class Parser {
 
   generateOrder() {
     const secs = this.tokenizedData.Sections
+    this.tokenizedData.Sections = []
     const length = secs.length
     let pointer = 0
     let repeatBeginIndex = []
     let segnoIndex = null
+    let codaIndex = null
     let order = []
     let volta = []
+    let isCoda = false
     let skip = false
     while (pointer < length) {
       const element = secs[pointer]
@@ -60,10 +63,14 @@ export default class Parser {
           order.push(1)
         }
         if (volta.length > 0) {
-          if (volta.indexOf(order + 1) == -1 && ...) // 查找之后的第一个 Volta 里是否不含下一个 index
-          order[-1]++
-          index = repeatBeginIndex[-1]
-          volta = []
+          if (volta.indexOf(order + 1) == -1 && (secs[pointer + 1].Type != "Volta" || secs[pointer + 1].Volta.indexOf(order + 1) == -1)) {
+            repeatBeginIndex.pop()
+            order.pop()
+          } else {
+            order[-1]++
+            index = repeatBeginIndex[-1]
+            volta = []
+          }
         } else {
           if (order[-1] == 1) {
             order[-1]++
@@ -76,7 +83,7 @@ export default class Parser {
         break
       case 'Volta':
         if (element.Volta.indexOf(order) == -1) {
-
+          // 跳到下一个 Volta 的位置
         } else {
           volta = element.Volta
         }
@@ -84,17 +91,44 @@ export default class Parser {
       case 'Segno':
         if (segnoIndex == null) {
           segnoIndex = pointer
+        } else {
+          // 报个错
+        }
+        break
+      case 'Coda':
+        if (skip) {
+          if (codaIndex == null) {
+            // 报个错
+          } else {
+            pointer = codaIndex
+          }
+        } else {
+          if (isCoda) {
+            codaIndex = pointer
+          } else {
+            isCoda = true
+          }
         }
         break
       case 'DaCapo':
+        if (!skip) {
+          skip = true
+          pointer = -1
+        }
         break
       case 'DaSegno':
-        if (skip) {
-          
+        if (!skip) {
+          if (segnoIndex == null) {
+            // 报个错
+          } else {
+            skip = true
+            pointer = segnoIndex
+          }
         }
         break
       case 'Section':
       case 'FUNCTION':
+        this.tokenizedData.Sections.push(element)
         break
       }
       pointer += 1
