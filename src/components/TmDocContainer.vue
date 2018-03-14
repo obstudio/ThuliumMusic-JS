@@ -26,7 +26,7 @@ export default {
           Array.prototype.forEach.call(
             codes,
             el => {
-              //el.className = ''
+              // el.className = ''
               el.setAttribute(
                 'data-lang',
                 'tm'

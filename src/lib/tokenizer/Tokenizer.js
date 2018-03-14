@@ -1229,6 +1229,7 @@ export default class Tokenizer {
           })
         }
       }
+      if (sec.Settings.length === 0 && sec.Tracks.length === 0) continue
       this.result.Sections.push(sec)
     }
     return this.result
