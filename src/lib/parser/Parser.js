@@ -27,10 +27,9 @@ export default class Parser {
   parse() {
     const result = []
     this.generateOrder()
-    this.order.forEach((index) => {
-      const part = this.tokenizedData.Sections[index]
+    this.tokenizedData.Sections.forEach((part) => {
       if (part.Type === 'Section') {
-        result.push(this.parseSection())
+        result.push(this.parseSection(part))
       } else {
         this.libraries.FunctionPackage.applyFunction({ Settings: this.sectionContext.Settings, Context: {} }, part)
       }
@@ -58,23 +57,23 @@ export default class Parser {
         order.push(1)
         break
       case 'RepeatEnd':
-        if (order.length == 0) { // 无反复开始记号，即为从头反复
+        if (order.length === 0) { // 无反复开始记号，即为从头反复
           repeatBeginIndex.push(-1)
           order.push(1)
         }
         if (volta.length > 0) { // 当前在小房子里
-          if (volta.indexOf(order + 1) == -1 && (secs[pointer + 1].Type != 'Volta' || secs[pointer + 1].Volta.indexOf(order + 1) == -1)) { // 判断是否还有下一次反复，没有则终止反复
+          if (volta.indexOf(order[order.length - 1] + 1) === -1 && (secs[pointer + 1].Type !== 'Volta' || secs[pointer + 1].Order.indexOf(order[order.length - 1] + 1) === -1)) { // 判断是否还有下一次反复，没有则终止反复
             repeatBeginIndex.pop()
             order.pop()
           } else { // 还有下一次反复
-            order[-1]++
-            index = repeatBeginIndex[-1]
+            order[order.length - 1]++
+            pointer = repeatBeginIndex[repeatBeginIndex.length - 1]
             volta = []
           }
         } else { // 没有小房子，则反复两次
-          if (order[-1] == 1) {
-            order[-1]++
-            index = repeatBeginIndex[-1]
+          if (order[order.length - 1] === 1) {
+            order[order.length - 1]++
+            pointer = repeatBeginIndex[repeatBeginIndex.length - 1]
           } else {
             repeatBeginIndex.pop()
             order.pop()
@@ -82,7 +81,7 @@ export default class Parser {
         }
         break
       case 'Volta':
-        if (element.Volta.indexOf(order) == -1) { // 反复跳跃记号不是当前反复次数
+        if (element.Order.indexOf(order[order.length - 1]) === -1) { // 反复跳跃记号不是当前反复次数
           let pointer1 = pointer + 1
           let nest = 1
           while (pointer1 < length && nest > 0) { // 寻找匹配的反复结束记号
@@ -99,13 +98,13 @@ export default class Parser {
             }
             pointer1++
           }
-          if (nest == 0) {
+          if (nest === 0) {
             pointer = pointer1 - 1 // 指向匹配的反复结束记号
           } else {
             // 报个错
           }
         } else {
-          volta = element.Volta
+          volta = element.Order
         }
         break
       case 'Segno':
