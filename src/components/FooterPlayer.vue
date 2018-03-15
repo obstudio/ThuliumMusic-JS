@@ -18,17 +18,24 @@
         </el-row>
         <el-row type="flex" justify="space-around">
           <el-col :span="4">
-            <el-button type="primary" round="true">PlayList</el-button>
+            <el-button type="primary" round="true"><icon name="list" scale="1.2"></icon></el-button>
           </el-col>
           <el-col :span="16">
-            <el-button type="primary" round="true">Repeat</el-button>
-            <el-button type="primary" round="true">Pre</el-button>
-            <el-button type="primary" round="true">Play/Paulse</el-button>
-            <el-button type="primary" round="true">Next</el-button>
-            <el-button type="primary" round="true">Random</el-button>
+            <el-button type="primary" round="true"><icon name="repeat" scale="1.2"></icon></el-button>
+            <el-button type="primary" round="true"><icon name="backward" scale="1.2"></icon></el-button>
+            <el-button type="primary" round="true"><icon name="play" scale="1.2"></icon></el-button>
+            <el-button type="primary" round="true"><icon name="forward" scale="1.2"></icon></el-button>
+            <el-button type="primary" round="true"><icon name="random" scale="1.2"></icon></el-button>
           </el-col>
           <el-col :span="4">
-            <el-slider v-model="volume"></el-slider>
+            <el-row>
+              <el-col :span="4">
+                <icon name="volume-up" scale="1.5" style="color: white; padding-top: 0.5rem;"></icon>
+              </el-col>
+              <el-col :span="20">
+                <el-slider v-model="volume"></el-slider>
+              </el-col>
+            </el-row>
           </el-col>
         </el-row>
       </el-main>
@@ -54,6 +61,12 @@
   }
   .el-aside {
     padding: 0;
+  }
+  .el-button {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: .6rem;
+    padding-bottom: .6rem;
   }
 </style>
 
