@@ -44,10 +44,8 @@ export default class Parser {
     let pointer = 0
     let repeatBeginIndex = [] // 用数组存储嵌套反复每次开始的位置
     let segnoIndex = null
-    let codaIndex = null
     let order = [] // 嵌套反复每次反复的次数
     let volta = [] // 存储当前小房子反复跳跃记号对应的反复次数
-    let isCoda = false // 是否是第二次出现 Coda（第一次不必记录）
     let skip = false // 是否是大反复的第二次反复
     while (pointer < length) {
       const element = secs[pointer]
@@ -110,22 +108,18 @@ export default class Parser {
       case 'Segno':
         if (segnoIndex == null) {
           segnoIndex = pointer
-        } else {
+        } else if (segnoIndex != pointer) {
           // 报个错
         }
         break
       case 'Coda':
         if (skip) {
-          if (codaIndex == null) {
-            // 报个错
-          } else {
-            pointer = codaIndex
+          pointer++
+          while (pointer < length && secs[pointer].Type != 'Coda') {
+            pointer++
           }
-        } else {
-          if (isCoda) {
-            codaIndex = pointer
-          } else {
-            isCoda = true
+          if (pointer == length) {
+            // 报个错
           }
         }
         break
