@@ -4,7 +4,7 @@
       <el-aside width="100px" style="height: 104px" >
         <img src="https://ob-studio.cn/assets/images/icon/obstudio.png" width="100" height="100">
       </el-aside>
-      <el-main style="height: 100px; padding-top: 0;">
+      <el-main style="height: 100px; padding-top: 0; padding-bottom: 0;">
         <el-row>
           <el-col :span="4" style="color: white; text-align: left; line-height: 1rem; padding-top: .3rem">
             <h1>Ob Studio</h1>
@@ -33,7 +33,7 @@
                 <el-button type="primary" round="true"><icon name="forward" scale="1.2"></icon></el-button>
                 <el-button type="primary" round="true"><icon name="random" scale="1.2"></icon></el-button>
               </el-col>
-              <el-col :span="4">
+              <el-col :span="4" style="padding-right: 1rem">
                 <el-row>
                   <el-col :span="6">
                     <icon name="volume-up" scale="1.5" style="color: white; padding-top: 0.5rem;"></icon>
