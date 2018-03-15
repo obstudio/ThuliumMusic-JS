@@ -139,6 +139,9 @@ export default class Parser {
           }
         }
         break
+      case 'Fine':
+        return
+        break
       case 'Section':
       case 'FUNCTION':
         this.tokenizedData.Sections.push(element)
