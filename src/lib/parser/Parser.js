@@ -141,6 +141,7 @@ export default class Parser {
         break
       case 'Fine':
         return
+        /* eslint-disable-next-line no-unreachable */
         break
       case 'Section':
       case 'FUNCTION':
