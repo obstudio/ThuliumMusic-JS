@@ -108,17 +108,17 @@ export default class Parser {
       case 'Segno':
         if (segnoIndex == null) {
           segnoIndex = pointer
-        } else if (segnoIndex != pointer) {
+        } else if (segnoIndex !== pointer) {
           // 报个错
         }
         break
       case 'Coda':
         if (skip) {
           pointer++
-          while (pointer < length && secs[pointer].Type != 'Coda') {
+          while (pointer < length && secs[pointer].Type !== 'Coda') {
             pointer++
           }
-          if (pointer == length) {
+          if (pointer === length) {
             // 报个错
           }
         }
