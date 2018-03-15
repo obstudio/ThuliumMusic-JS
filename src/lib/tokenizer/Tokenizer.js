@@ -264,136 +264,6 @@ const langDef = {
       }
     }
   ],
-  LineLocal: [
-    {
-      regex: /^!/,
-      action: {
-        token: '@pass',
-        next: '@pop'
-      }
-    },
-    {
-      regex: /^([A-Za-z]\w*)\s*\(/,
-      action: {
-        token: 'func',
-        next: 'Func',
-        transform(func, content) {
-          return {
-            Type: 'FUNCTION',
-            Name: func[1],
-            Argument: content
-          }
-        }
-      }
-    },
-    {
-      regex: /^\((\w+):([\d-]+)\)/,
-      action: {
-        token: 'sfunc',
-        transform(match) {
-          return {
-            Type: 'FUNCTION',
-            Name: match[1],
-            Argument: [
-              {
-                Type: 'Number',
-                Content: Number(match[2])
-              }
-            ]
-          }
-        }
-      }
-    },
-    {
-      regex: /^\((\d+)\/(\d+)\)/,
-      action: {
-        token: 'sfunc',
-        transform(match) {
-          return {
-            Type: 'FUNCTION',
-            Name: 'BarBeat',
-            Argument: [
-              {
-                Type: 'Number',
-                Content: Number(match[1])
-              },
-              {
-                Type: 'Number',
-                Content: Number(match[2])
-              }
-            ]
-          }
-        }
-      }
-    },
-    {
-      regex: /^\(1=([A-G',b#]+)\)/,
-      action: {
-        token: 'sfunc',
-        transform(match) {
-          return {
-            Type: 'FUNCTION',
-            Name: 'KeyOct',
-            Argument: [
-              {
-                Type: 'String',
-                Content: match[1]
-              }
-            ]
-          }
-        }
-      }
-    },
-    {
-      regex: /^\((\d+)%\)/,
-      action: {
-        token: 'sfunc',
-        transform(match) {
-          return {
-            Type: 'FUNCTION',
-            Name: 'Vol',
-            Argument: [
-              {
-                Type: 'Number',
-                Content: Number(match[1])
-              }
-            ]
-          }
-        }
-      }
-    },
-    {
-      regex: /^\((\d+)\)/,
-      action: {
-        token: 'sfunc',
-        transform(match) {
-          return {
-            Type: 'FUNCTION',
-            Name: 'Spd',
-            Argument: [
-              {
-                Type: 'Number',
-                Content: Number(match[1])
-              }
-            ]
-          }
-        }
-      }
-    },
-    {
-      regex: /^\(/,
-      action: {
-        token: 'sfunc',
-        next: 'Dynamic',
-        transform(_, content) {
-          return {
-            Type: 'Sfunc',
-            Content: content
-          }
-        }
-      }
-    }
-  ],
   root: [
     {
       regex: /^([0-7x%])([',#b]*)([A-Zac-wyz]*)([',#b]*)([-_.=]*)(`*)([:>]*)/,
@@ -529,10 +399,9 @@ const langDef = {
       regex: /^!/,
       action: {
         token: 'local',
-        next: 'LineLocal',
         transform(_, content) {
           return {
-            Type: 'Setting',
+            Type: 'LocalIndicator',
             Settings: content
           }
         }
@@ -1211,14 +1080,10 @@ export default class Tokenizer {
             Instruments: instr,
             Content: tra
           })
+        } else if (tra[0].Type === 'LocalIndicator') {
+          sec.Settings.push(...tra.slice(1))
         } else if (Tokenizer.isHeadTrack(tra)) {
-          for (const tok of tra) {
-            if (tok.Type === 'Setting') {
-              sec.Settings.push(...tok.Settings)
-            } else {
-              this.result.Sections.push(tok)
-            }
-          }
+          this.result.Sections.push(...tra)
         } else {
           sec.Tracks.push({
             ID: null,
