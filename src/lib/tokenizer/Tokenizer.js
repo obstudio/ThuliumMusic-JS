@@ -658,7 +658,7 @@ const langDef = {
       }
     },
     {
-      regex: /^(\+|s|DC|DS)/,
+      regex: /^(\+|s|DC|DS|Fine)/,
       action: {
         token: 'repeats',
         transform (match) {
@@ -666,7 +666,8 @@ const langDef = {
             '+': 'Coda',
             's': 'Segno',
             'DC': 'DaCapo',
-            'DS': 'DaSegno'
+            'DS': 'DaSegno',
+            'Fine': 'Fine'
           }
           return {
             Type: map[match[1]]
@@ -1168,7 +1169,7 @@ export default class Tokenizer {
   }
 
   static isHeadTrack(track) {
-    const heads = ['Volta', 'RepeatBegin', 'RepeatEnd', 'Setting', 'Coda', 'Segno', 'DaCapo', 'DaSegno']
+    const heads = ['Volta', 'RepeatBegin', 'RepeatEnd', 'Setting', 'Coda', 'Segno', 'DaCapo', 'DaSegno', 'Fine']
     const settings = ['ConOct', 'Vol', 'Spd', 'Key', 'Oct', 'KeyOct', 'Beat', 'Bar', 'BarBeat', 'Dur', 'Acct', 'Light', 'Seg', 'Port', 'Trace', 'FadeIn', 'FadeOut', 'Rev', 'Ferm', 'Stac']
     return track.every((element) => {
       return heads.includes(element.Type) || (element.Type === 'FUNCTION' && settings.includes(element.Name))
