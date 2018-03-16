@@ -157,7 +157,7 @@ export default class Parser {
   parseSection(section) {
     const settings = this.sectionContext.Settings.extend()
     section.Settings.filter((token) => token.Type === 'FUNCTION')
-      .forEach((token) => this.libraries.FunctionPackage.applyFunction({ settings, Context: {} }, token))
+      .forEach((token) => this.libraries.FunctionPackage.applyFunction({ Settings: settings, Context: {} }, token))
     const instrStatistic = {}
     const sec = {
       ID: section.ID,
