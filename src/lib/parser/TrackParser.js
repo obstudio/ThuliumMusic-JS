@@ -16,10 +16,9 @@ export class TrackParser {
       release = content.findIndex((tok) => tok.Type === 'PedalRelease')
       if (press === -1) break
       if (release === -1) {
-        const dur = trackResult.Meta.Duration - content[press].StartTime
         content.splice(press, 1)
         content.slice(press).forEach((tok) => {
-          tok.Duration = dur
+          tok.Duration = trackResult.Meta.Duration - tok.StartTime
         })
         break
       }
@@ -28,11 +27,11 @@ export class TrackParser {
         release = content.findIndex((tok) => tok.Type === 'PedalRelease')
         press -= 1
       }
-      const dur = content[release].StartTime - content[press].StartTime
+      const final = content[release].StartTime
       content.splice(release, 1)
       content.splice(press, 1)
       content.slice(press, release).forEach((tok) => {
-        tok.Duration = dur
+        tok.Duration = final - tok.StartTime
       })
     }
   }
