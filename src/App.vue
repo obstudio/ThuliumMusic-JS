@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="full-screen">
     <router-view/>
-    <footer-player style="text-align: center;"/>
+    <footer-player style="text-align: center;" :Time="75" :TotalTime="100" :Volume="75"/>
   </div>
 </template>
 

@@ -2,7 +2,7 @@
   <div class="footer-player">
     <el-container class="play-bar">
       <el-aside width="100px" style="height: 104px" class="hidden-xs-only">
-        <img src="static/obstudio.png" width="100" height="100">
+        <img src="static/pic/obstudio.png" width="100" height="100">
       </el-aside>
       <el-main style="height: 100px; padding-top: 0; padding-bottom: 0;">
         <el-row type="flex" justify="space-around">
@@ -15,13 +15,13 @@
           <el-col :span="17" :sm="19" :lg="21" :xl="22">
             <el-row>
               <el-col :span="4" :sm="2" style="padding-top: .6rem; color: white">
-                01:15
+                {{formatTime(Time)}}
               </el-col>
               <el-col :span="16" :sm="20">
-                <el-slider v-model="Time" :step="1" :max="TotalTime"></el-slider>
+                <el-slider v-model="Time" :step="1" :max="TotalTime" :format-tooltip="formatTime"></el-slider>
               </el-col>
               <el-col :span="4" :sm="2" style="padding-top: .6rem; color: white">
-                01:40
+                {{formatTime(TotalTime)}}
               </el-col>
             </el-row>
             <el-row type="flex" justify="space-around">
@@ -87,11 +87,13 @@
 <script>
 export default {
   name: 'FooterPlayer',
-  data () {
-    return {
-      Time: 75,
-      TotalTime: 100,
-      Volume: 75
+  props: ['Time', 'TotalTime', 'Volume'], // TODO: 考虑将Time和Volume增强为model，或者采用事件形式通知变化
+  methods: {
+    formatTime (time) {
+      time = Math.ceil(time)
+      const sec = time % 60
+      const min = Math.floor(time / 60)
+      return `${min}:${sec.toString().padStart(2, '0')}`
     }
   }
 }
