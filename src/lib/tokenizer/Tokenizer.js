@@ -545,11 +545,11 @@ const langDef = {
       }
     },
     {
-      regex: /^<([A-Za-z0-9]+:)?([A-Za-z0-9]+(\(.+\))?)(,[A-Za-z0-9]+(\(.+\))?)*>/,
+      regex: /^<([A-Za-z0-9]+:)?([A-Za-z0-9]+(\(.+?\))?)(,[A-Za-z0-9]+(\(.+?\))?)*>/,
       action: {
         token: 'instr',
         transform(instrs) { // For ID
-          const res = instrs[2].split(',').map((instr) => {
+          const res = instrs[0].slice(1, -1).split(',').map((instr) => {
             const info = instr.match(/(\w+)(\(\d+%\))?/)
             return {
               Instrument: info[1],
