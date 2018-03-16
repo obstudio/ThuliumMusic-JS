@@ -16,25 +16,10 @@
 
 <script>
 export default {
-  name: 'TmLoading',
-  data() {
-    return {}
-  },
-  props: ['loaded'],
-  watch: {
-    loaded (val) {
-      if (val === true) {
-        this.$el.style.opacity = 0
-        this.$el.addEventListener('transitionend', () => {
-          this.$destroy()
-        })
-      }
-    }
-  }
+  name: 'TmLoading'
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .progress {
     margin: 0 auto;

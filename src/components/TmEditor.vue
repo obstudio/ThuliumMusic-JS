@@ -1,35 +1,23 @@
 <template>
 <div :style="{width, height}">
-  <tm-loading :loaded="loaded" v-if="show" @transitionend.native="destroy"></tm-loading>
-  <tm-monaco v-if="loaded" :width="width" :height="height"></tm-monaco>
+  <tm-monaco :width="width" :height="height"></tm-monaco>
 </div>
 </template>
 
 <script>
 import TmLoading from './TmLoading.vue'
-import TmMonaco from './TmMonacoEditor.vue'
 
 export default {
   name: 'TmEditor',
   components: {
     TmLoading,
-    TmMonaco
-  },
-  data() {
-    return {
-      loaded: false,
-      show: true
-    }
-  },
-  mounted() {
-    this.$loadMonaco().then(() => {
-      this.loaded = true
+    TmMonaco: () => ({
+      component: import(/* webpackChunkName: "monaco" */'./TmMonacoEditor.vue'),
+      loading: TmLoading,
+      error: TmLoading,
+      delay: 200,
+      timeout: 20000
     })
-  },
-  methods: {
-    destroy () {
-      this.show = false
-    }
   },
   props: ['width', 'height']
 }
