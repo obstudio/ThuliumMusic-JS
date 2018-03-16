@@ -1,6 +1,8 @@
 <template>
 <div :style="{width, height}">
-  <tm-monaco :width="width" :height="height"></tm-monaco>
+  <transition mode="in-out">
+      <tm-monaco :width="width" :height="height"></tm-monaco>
+  </transition>
 </div>
 </template>
 
@@ -24,5 +26,11 @@ export default {
 </script>
 
 <style>
+.v-leave-active {
+  transition: opacity 1s cubic-bezier(0.19, 1, 0.22, 1) 1s;
+}
 
+.v-leave-to {
+  opacity: 0;
+}
 </style>

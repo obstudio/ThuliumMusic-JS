@@ -1,5 +1,5 @@
 <template>
-  <div class="full-screen fade" style="background-color: #2d2d2d; z-index: 33; display: flex; align-items: center; justify-content: center; flex-direction: column">
+  <div class="full-screen" style="background-color: #2d2d2d; z-index: 33; display: flex; align-items: center; justify-content: center; flex-direction: column">
     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
       height="60%" viewBox="0 0 1000 1000" enable-background="new 0 0 1000 1000" xml:space="preserve">
       <g>
@@ -73,12 +73,5 @@ export default {
     transition: width 0.6s ease;
     background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
     background-size: 1rem 1rem;
-}
-
-.fade {
-    transition-property: opacity;
-    transition-duration: 2s;
-    transition-delay: 1s;
-    transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1)
 }
 </style>

@@ -13,7 +13,7 @@ export default {
   },
   methods: {
     async render(name) {
-      const doc = await fetch(`/static/${name}.tmd`)
+      const doc = await fetch(`/static/doc/${name}.tmd`)
       const text = await doc.text()
       return this.$md.render(text)
     },
