@@ -1,7 +1,7 @@
 <template>
   <el-row :gutter="30">
-    <el-col :span="3" :offset="3">
-        <tm-doc-directory :items="items"></tm-doc-directory>
+    <el-col :span="3" :offset="3" :style="{height}">
+        <tm-doc-directory :items="items" style="height: 100%"></tm-doc-directory>
     </el-col>
     <el-col :span="9" :offset="3">
         <tm-doc-container :doc="doc"></tm-doc-container>
@@ -22,7 +22,8 @@ export default {
   data () {
     return {
       doc: defaultValue,
-      items: ['main', 'GraceNote', 'Foo']
+      items: ['main', 'GraceNote', 'Foo'],
+      height: `${window.innerHeight - 100}px`
     }
   },
   beforeRouteUpdate (to, from, next) {
@@ -34,4 +35,5 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+
 </style>
