@@ -87,7 +87,12 @@
 <script>
 export default {
   name: 'FooterPlayer',
-  props: ['Time', 'TotalTime', 'Volume'], // TODO: 考虑将Time和Volume增强为model，或者采用事件形式通知变化
+  data () {
+    return {
+      Time: this.InitialTime
+    }
+  },
+  props: ['InitialTime', 'TotalTime', 'Volume'], // TODO: 考虑将Time和Volume增强为model，或者采用事件形式通知变化
   methods: {
     formatTime (time) {
       time = Math.ceil(time)
