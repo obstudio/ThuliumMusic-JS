@@ -28,7 +28,7 @@ function audioLibVar(instr) {
   }
 }
 
-export class Player {
+export default class Player {
   constructor(value) {
     this.value = value
     const result = new MIDIAdapter().adapt(new Parser(new Tokenizer(value).tokenize()).parse())

@@ -4,6 +4,7 @@
 </template>
 
 <script>
+import monaco from '@/Editor'
 export default {
   name: 'TmDocContainer',
   data() {
@@ -20,26 +21,18 @@ export default {
     setContent() {
       this.render(this.doc).then(ret => {
         this.content = ret
-        const codes = this.$el.getElementsByTagName('code')
-        console.log(codes)
-        this.$nextTick(() =>
-          Array.prototype.forEach.call(
-            codes,
-            el => {
-              // el.className = ''
-              el.setAttribute(
-                'data-lang',
-                'tm'
-              )
-              window.monaco.editor.colorizeElement(el, {theme: 'tm'})
-            }
-          )
-        )
+        this.$nextTick(() => {
+          const codes = this.$el.getElementsByClassName('language-tm')
+          Array.prototype.forEach.call(codes, el => {
+            el.setAttribute('data-lang', 'tm')
+            monaco.editor.colorizeElement(el, { theme: 'tm' })
+          })
+        })
       })
     }
   },
   created() {
-    this.$loadMonaco().then(() => this.setContent())
+    this.setContent()
   },
   watch: {
     doc(val) {
@@ -52,6 +45,10 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
+<style>
+.tm {
+  display: block;
+  background-color: black;
+  padding: 10px;
+}
 </style>

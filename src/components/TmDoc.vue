@@ -1,9 +1,9 @@
 <template>
   <el-row :gutter="30">
-    <el-col :span="6">
+    <el-col :span="3" :offset="3">
         <tm-doc-directory :items="items"></tm-doc-directory>
     </el-col>
-    <el-col :span="18">
+    <el-col :span="9" :offset="3">
         <tm-doc-container :doc="doc"></tm-doc-container>
     </el-col>
   </el-row>
