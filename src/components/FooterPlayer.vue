@@ -1,16 +1,17 @@
 <template>
   <div class="footer-player">
     <el-container class="play-bar">
-      <el-aside width="100px" style="height: 104px" class="hidden-xs-only">
+      <el-aside width="100px" style="height: 104px" class="hidden-xs-only"> <!--Music Image-->
         <img src="static/pic/obstudio.png" width="100" height="100">
       </el-aside>
       <el-main style="height: 100px; padding-top: 0; padding-bottom: 0;">
         <el-row type="flex" justify="space-around">
           <el-col
             :span="7" :sm="5" :lg="3" :xl="2"
-            style="color: white; text-align: left; padding-top: .3rem;">
-            <h1 style="margin: .3rem">Ob Studio</h1>
-            <p style="margin:.3rem">ObFish</p>
+            style="color: white; text-align: left; padding-top: .3rem;"
+            class="music-text">
+            <h1 style="margin: .3rem">Ob Studio</h1>   <!--Music Name-->
+            <p style="margin:.3rem">ObFish</p>         <!--Artists-->
           </el-col>
           <el-col :span="17" :sm="19" :lg="21" :xl="22">
             <el-row>
@@ -64,6 +65,7 @@
     left: 0;
     bottom: -4px;
     background-color: #282828;
+    height: 104px
   }
   .play-progress {
     position: fixed;
@@ -82,6 +84,20 @@
     padding-top: .6rem;
     padding-bottom: .6rem;
   }
+@media screen and (max-width: 320px){
+  .el-button {
+    margin-right: .1rem;
+    margin-left: .1rem;
+  }
+}
+@media screen and (max-width: 576px){
+  .music-text h1 {
+    font-size: 1.2rem
+  }
+  .music-text p {
+    font-size: 1rem
+  }
+}
 </style>
 
 <script>
