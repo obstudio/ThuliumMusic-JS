@@ -66,11 +66,20 @@ export class TrackParser {
 
   parseTrack() {
     this.preprocess()
-    const trackResult = this.parseTrackContent()
-    TrackParser.processPedal(trackResult)
     if (this.isSubtrack) {
+      const trackResult = this.parseTrackContent()
+      TrackParser.processPedal(trackResult)
       return [trackResult]
     } else {
+      if (this.Instruments.every((instrument) => instr.includes(instrument.Instrument))) {
+        currentType = 0
+      } else if (this.Instruments.every((instrument) => drum.includes(instrument.Instrument))) {
+        currentType = 1
+      } else {
+        currentType = 0
+      }
+      const trackResult = this.parseTrackContent()
+      TrackParser.processPedal(trackResult)
       if (this.Instruments.length === 0) {
         this.Instruments.push({
           Instrument: 'Piano',
@@ -82,13 +91,6 @@ export class TrackParser {
       }
       if (!this.Instruments.every((instrument) => instrument.Instrument === '' || instr.includes(instrument.Instrument) || drum.includes(instrument.Instrument))) {
         this.pushError(TmError.Types.Track.Instrument, {Actual: this.Instruments}, false)
-      }
-      if (this.Instruments.every((instrument) => instr.includes(instrument.Instrument))) {
-        currentType = 0
-      } else if (this.Instruments.every((instrument) => drum.includes(instrument.Instrument))) {
-        currentType = 1
-      } else {
-        currentType = 0
       }
       return this.Instruments.map((instrument) => {
         const meta = Object.assign({}, trackResult.Meta, { Warnings: trackResult.Meta.Warnings.slice() })
