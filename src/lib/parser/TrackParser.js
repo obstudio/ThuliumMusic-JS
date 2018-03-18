@@ -45,11 +45,23 @@ export class TrackParser {
     this.Settings = sectionSettings.extend()
     this.Context = {
       afterTie: false,
+      locator: {
+        index: -1,
+        bar: 0
+      },
       notesBeforeTie: [],
       startTime: 0,
       pitchQueue: [],
       warnings: []
     }
+  }
+
+  pushError(errorType, args, useLocator = true) {
+    let location = []
+    if (useLocator) {
+      location.push(Object.assign({}, this.Context.locator))
+    }
+    this.Context.warnings.push(new TmError(errorType, location, args))
   }
 
   parseTrack() {
@@ -66,10 +78,10 @@ export class TrackParser {
         })
       }
       if (trackResult.Meta.Duration < this.Settings.FadeIn || trackResult.Meta.Duration < this.Settings.FadeOut) {
-        this.Context.warnings.push(new TmError(TmError.Types.Track.FadeOverLong, [], {Actual: [this.Settings.FadeIn, this.Settings.FadeOut]}))
+        this.pushError(TmError.Types.Track.FadeOverLong, {Actual: [this.Settings.FadeIn, this.Settings.FadeOut]}, false)
       }
       if (!this.Instruments.every((instrument) => instrument.Instrument === '' || instr.includes(instrument.Instrument) || drum.includes(instrument.Instrument))) {
-        this.Context.warnings.push(new TmError(TmError.Types.Track.Instrument, [], {Actual: this.Instruments}))
+        this.pushError(TmError.Types.Track.Instrument, {Actual: this.Instruments}, false)
       }
       if (this.Instruments.every((instrument) => instr.includes(instrument.Instrument))) {
         currentType = 0
@@ -145,6 +157,7 @@ export class TrackParser {
     let leftFirst = true
 
     for (const token of this.Content) {
+      this.Context.locator.index += 1
       switch (token.Type) {
       case 'FUNCTION':
       case 'Subtrack':
@@ -166,7 +179,7 @@ export class TrackParser {
         this.Context.notesBeforeTie = subtrack.Meta.NotesBeforeTie
         this.Context.afterTie = subtrack.Meta.AfterTie
         this.Context.warnings.push(...subtrack.Meta.Warnings.map((warning) => {
-          warning.pos.unshift(this.Content.indexOf(token))
+          warning.pos.unshift(Object.assign({}, this.Context.locator))
           return warning
         }))
         if (subtrack.Meta.Single) {
@@ -193,7 +206,7 @@ export class TrackParser {
           } else {
             rightIncomplete += subtrack.Meta.Incomplete[0]
             if (!this.isLegalBar(rightIncomplete)) {
-              this.Context.warnings.push(new TmError(TmError.Types.Track.BarLength, [this.Content.indexOf(token)], { Expected: this.Settings.Bar, Actual: rightIncomplete }))
+              this.pushError(TmError.Types.Track.BarLength, { Expected: this.Settings.Bar, Actual: rightIncomplete })
             }
             rightIncomplete = subtrack.Meta.Incomplete[1]
             if (this.isLegalBar(rightIncomplete)) {
@@ -219,13 +232,14 @@ export class TrackParser {
         leftFirst = false
         if (token.Terminal !== true) {
           if (!this.isLegalBar(rightIncomplete)) {
-            this.Context.warnings.push(new TmError(TmError.Types.Track.BarLength, [this.Content.indexOf(token)], { Expected: this.Settings.Bar, Actual: rightIncomplete }))
+            this.pushError(TmError.Types.Track.BarLength, { Expected: this.Settings.Bar, Actual: rightIncomplete })
           }
           rightIncomplete = 0
         }
         if (token.Overlay) {
           this.Context.startTime = 0
         }
+        this.Context.locator.bar += 1
         break
       case 'PedalPress':
       case 'PedalRelease':
@@ -235,7 +249,7 @@ export class TrackParser {
         })
         break
       case 'Undefined':
-        this.Context.warnings.push(new TmError(TmError.Types.Track.Undefined, [this.Content.indexOf(token)], { Actual: token }))
+        this.pushError(TmError.Types.Track.Undefined, { Actual: token })
         break
       case 'Clef':
       case 'Whitespace':
@@ -290,12 +304,12 @@ export class TrackParser {
         pitches.push(...[].concat(...queue.map((pitch) => this.Settings.Key.map((key) => key - this.Settings.Key[0] + pitch + delta))))
         volumes.push(...[].concat(...new Array(queue.length).fill(this.getVolume(note.VolOp))))
       } else {
-        this.Context.warnings.push(new TmError(TmError.Types.Note.NoPrevious, [this.Content.indexOf(note)], { Expected: this.Settings.Trace, Actual: this.Context.pitchQueue.length }))
+        this.pushError(TmError.Types.Note.NoPrevious, { Expected: this.Settings.Trace, Actual: this.Context.pitchQueue.length })
       }
     } else {
       for (const pitch of note.Pitches) {
         if ((currentType === 0 && pitch.Degree === 'x') || (currentType === 1 && pitch.Degree !== 'x' && pitch.Degree !== '0')) {
-          this.Context.warnings.push(new TmError(TmError.Types.Note.ScaleDegree, [this.Content.indexOf(note)], { Actual: pitch.Degree }))
+          this.pushError(TmError.Types.Note.ScaleDegree, { Actual: pitch.Degree })
         }
         if (pitch.Degree === '0') continue
         if (pitch.Degree === 'x') {
@@ -308,7 +322,7 @@ export class TrackParser {
           volumes.push(...this.getVolume(note.VolOp + pitch.VolOp))
         } else {
           const basePitch = this.parsePitch(pitch, note.PitOp)
-          const chords = this.parseChord(pitch, this.Content.indexOf(note))
+          const chords = this.parseChord(pitch)
           pitchQueue.push(...chords.map(subPitch => subPitch + basePitch[0]))
           pitches.push(...[].concat(...chords.map((subPitch) => basePitch.map((delta) => subPitch + delta))))
           volumes.push(...[].concat(...new Array(chords.length).fill(this.getVolume(note.VolOp + pitch.VolOp))))
@@ -316,7 +330,7 @@ export class TrackParser {
       }
     }
     if (new Set(pitches).size !== pitches.length) {
-      this.Context.warnings.push(new TmError(TmError.Types.Note.Reduplicate, [this.Content.indexOf(note)], { Actual: pitches }))
+      this.pushError(TmError.Types.Note.Reduplicate, { Actual: pitches })
     }
     if (pitchQueue.length > 0) {
       this.Context.pitchQueue.push(pitchQueue.slice(0))
@@ -358,7 +372,7 @@ export class TrackParser {
     return [...this.Settings.Volume, ...new Array(total - vol).fill(this.Settings.Volume[vol - 1])].map((v) => v * scale)
   }
 
-  parseChord(pitch, index) {
+  parseChord(pitch) {
     return pitch.Chord.split('').reduce((pitches, chord) => {
       const operator = this.Libraries.Chord[chord]
       const res = []
@@ -367,26 +381,27 @@ export class TrackParser {
       operator.forEach(([head, tail, delta]) => {
         if (head < 0) {
           if (head < -length) {
-            this.Context.warnings.push(new TmError(TmError.Types.Note.ChordRange, [index], { Expected: -length, Actual: head }))
+            this.pushError(TmError.Types.Note.ChordRange, { Expected: -length, Actual: head })
           }
           head += length + 1
         } else if (head > length) {
-          this.Context.warnings.push(new TmError(TmError.Types.Note.ChordRange, [index], { Expected: length, Actual: head }))
+          this.pushError(TmError.Types.Note.ChordRange, { Expected: length, Actual: head })
         }
         if (tail < 0) {
           if (tail < -length) {
-            this.Context.warnings.push(new TmError(TmError.Types.Note.ChordRange, [index], { Expected: -length, Actual: tail }))
+            this.pushError(TmError.Types.Note.ChordRange, { Expected: -length, Actual: tail })
           }
           tail += length + 1
         } else if (tail > length) {
-          this.Context.warnings.push(new TmError(TmError.Types.Note.ChordRange, [index], { Expected: length, Actual: tail }))
+          this.pushError(TmError.Types.Note.ChordRange, { Expected: length, Actual: tail })
         }
         for (let i = head; i <= tail; i++) {
           all[i - 1] = 0
         }
         res.push(...pitches.slice(head - 1, tail).map((pitch) => pitch + delta))
       })
-      if (!all.every((e) => e === 0)) this.Context.warnings.push(new TmError(TmError.Types.Note.ChordOverride, [index], {}))
+      this.pushError(TmError.Types.Note.ChordOverride, {})
+      if (!all.every((e) => e === 0)) this.pushError(TmError.Types.Note.ChordOverride, {})
       return res
     }, [0])
   }
@@ -461,7 +476,7 @@ export class SubtrackParser extends TrackParser {
     if (this.Repeat > 0) {
       this.Content.forEach((token, index) => {
         if (token.Skip === true) {
-          this.Context.warnings.push(new TmError(TmError.Types.Track.UnexpCoda, [index], {Actual: token}))
+          this.Context.warnings.push(new TmError(TmError.Types.Track.UnexpCoda, [{index}], {Actual: token}))
         }
       })
       const temp = []
@@ -497,7 +512,7 @@ export class SubtrackParser extends TrackParser {
     } else {
       this.Content.forEach((token, index) => {
         if (token.Order instanceof Array && (token.Order.length !== 1 || token.Order[0] !== 0)) {
-          this.Context.warnings.push(new TmError(TmError.Types.Track.UnexpVolta, [index], {Actual: token}))
+          this.Context.warnings.push(new TmError(TmError.Types.Track.UnexpVolta, [{index}], {Actual: token}))
         }
       })
       if (this.Repeat !== -1 && this.Content.length >= 1) {
@@ -511,9 +526,9 @@ export class SubtrackParser extends TrackParser {
         }
       }
       const skip = this.Content.findIndex((tok) => tok.Skip === true)
-      for (let i = skip + 1, length = this.Content.length; i < length; i++) {
-        if (this.Content[i].Skip === true) {
-          this.Context.warnings.push(new TmError(TmError.Types.Track.MultiCoda, [i], {}))
+      for (let index = skip + 1, length = this.Content.length; index < length; index++) {
+        if (this.Content[index].Skip === true) {
+          this.Context.warnings.push(new TmError(TmError.Types.Track.MultiCoda, [{index}], {}))
         }
       }
       let temp
