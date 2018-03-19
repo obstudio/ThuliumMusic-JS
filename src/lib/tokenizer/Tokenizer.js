@@ -536,7 +536,7 @@ const langDef = {
       regex: /^(\+|s|DC|DS|Fine)/,
       action: {
         token: 'repeats',
-        transform (match) {
+        transform(match) {
           const map = {
             '+': 'Coda',
             's': 'Segno',
