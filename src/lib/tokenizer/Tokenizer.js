@@ -829,11 +829,11 @@ const langDef = {
 
 const libDef = [
   {
-    regex: /^#\s*Chord([^]+?)\r?\n(?=#)/,
+    regex: /^#\s*Chord([^]+?)\n(?=#)/,
     type: 'Chord',
     transform(chords) {
       const result = []
-      const chordDefs = chords[1].split(/\r?\n/)
+      const chordDefs = chords[1].split(/\n/)
       for (const chordDef of chordDefs) {
         const res = chordDef.match(/^([A-Za-z])\t+([^\t]+\t+)?([^\t]+)/)
         if (res === null) continue
@@ -883,7 +883,7 @@ const libDef = [
     }
   },
   {
-    regex: /^#\s*Function([^]+?)\r?\n(?=#)/,
+    regex: /^#\s*Function([^]+?)\n(?=#)/,
     type: 'Function',
     transform(funcs) {
       return {
@@ -893,7 +893,7 @@ const libDef = [
     }
   },
   {
-    regex: /^#\s*Track([^]+?)\r?\n(?=#)/,
+    regex: /^#\s*Track([^]+?)\n(?=#)/,
     type: 'Macro',
     transform(macroAll) {
       const result = []
@@ -1058,6 +1058,7 @@ export default class Tokenizer {
     this.content = content
     this.include = []
     this.sections = []
+    this.comments = []
     this.libs = undefined
     this.result = {
       Library: [],
@@ -1066,17 +1067,17 @@ export default class Tokenizer {
   }
 
   tokenize() {
-    this.regularize()
-    this.removeComment()
+    this.content = this.content.replace(/\r\n/g, '\n')
     this.extractHeader()
     this.split()
-    for (const section of this.sections) {
+    for (let i = 0, length = this.sections.length; i < length; i++) {
       const sec = {
         Type: 'Section',
+        Comments: this.comments[i],
         Settings: [],
         Tracks: []
       }
-      for (const track of section) {
+      for (const track of this.sections[i]) {
         const tra = Tokenizer.tokenizeTrack(track)
         if (tra[0] instanceof Array) {
           const instr = tra.shift()
@@ -1108,29 +1109,35 @@ export default class Tokenizer {
   }
 
   split() {
-    const secs = this.content.split(/(\r?\n){3,}/)
-    for (let i = 0, length = secs.length; i < length; i++) {
-      const sec = secs[i]
-      const section = []
-      if (sec !== '' && sec !== '\n' && sec !== '\r\n') {
-        const tras = sec.split(/\r?\n\r?\n/)
-        for (let j = 0, length2 = tras.length; j < length2; j++) {
-          const tra = tras[j]
-          if (tra !== '') {
-            section.push(tra.replace(/\r?\n/, ''))
-          }
-        }
-        this.sections.push(section)
+    const pattern = /(^(\/\/.*)?\n){2,}/mg
+    let match
+    let lastIndex = 0
+    const secs = []
+    while ((match = pattern.exec(this.content)) !== null) {
+      if (match.index === 0) {
+        continue
+      } else {
+        secs.push(this.content.slice(lastIndex, match.index))
+        lastIndex = match.index
       }
     }
-  }
-
-  regularize() {
-    // this.content = this.content.replace(/[ \t\f\v]+(\n|$)/g, '$1')
-  }
-
-  removeComment() {
-    this.content = this.content.replace(/\/\/.*$/gm, '')
+    secs.push(this.content.slice(lastIndex))
+    for (let i = 0, length = secs.length; i < length; i++) {
+      const section = []
+      const comments = []
+      const tras = secs[i].replace(/^\/\/(.*)/gm, (str, comment) => {
+        comments.push(comment)
+        return ''
+      }).split(/\n\n/)
+      for (let j = 0, length2 = tras.length; j < length2; j++) {
+        const tra = tras[j]
+        if (tra !== '') {
+          section.push(tra.replace(/\n/, ''))
+        }
+      }
+      this.comments.push(comments)
+      this.sections.push(section)
+    }
   }
 
   extractHeader() {
