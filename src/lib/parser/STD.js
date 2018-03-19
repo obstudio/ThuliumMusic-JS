@@ -271,10 +271,25 @@ export default {
     }
     // this.Settings.assignSetting('Key', key, (key) => Number.isInteger(key))
   },
-  Oct(oct) {
-    const delta = (oct - Math.floor((this.Settings.Key[0] + 2) / 12)) * 12
-    for (var i = 0, length = this.Settings.Key.length; i < length; i++) {
-      this.Settings.Key[i] += delta
+  Oct() {
+    if (arguments.length === 0) return
+    if (arguments.length === 1) {
+      const oct = arguments[0]
+      const delta = (oct - Math.floor((this.Settings.Key[0] + 2) / 12)) * 12
+      for (let i = 0, length = this.Settings.Key.length; i < length; i++) {
+        this.Settings.Key[i] += delta
+      }
+    } else {
+      const octs = arguments[0]
+      const vols = arguments[1]
+      for (let i = 0, length = octs.length; i < length; i++) {
+        if (this.Settings.Key.length <= i) {
+          this.Settings.Key.push(this.Settings.Key[0] + (octs[i] - Math.floor((this.Settings.Key[0] + 2) / 12)) * 12)
+        } else {
+          this.Settings.Key[i] += (octs[i] - Math.floor((this.Settings.Key[i] + 2) / 12)) * 12
+        }
+      }
+      this.Settings.Volume = vols
     }
     // this.Settings.assignSetting('Octave', oct, (octave) => Number.isInteger(octave))
   },
