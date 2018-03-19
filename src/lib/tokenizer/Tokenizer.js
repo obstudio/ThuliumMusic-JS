@@ -162,8 +162,7 @@ const sDef = [
       {
         Type: 'Sfunc',
         Content: [
-          { Type: 'Subtrack' },
-          /^\^/
+          /^(([0-7x%])([',#b]*)([A-Zac-wyz]*)([',#b]*)([-_.=]*)(`*)([:>]*)|\[(([0-7x%][',#A-Za-wyz:>]*)+)\]([',#b]*)([-_.=]*)(`*)([:>]*))+\^/
         ]
       },
       {
@@ -176,7 +175,11 @@ const sDef = [
         Name: 'GraceNote',
         Simplified: true,
         Argument: [
-          match[0].Content[0],
+          {
+            Type: 'Subtrack',
+            Content: Tokenizer.tokenizeTrack(match[0].Content[0].Content.slice(0, -1)),
+            Repeat: -1
+          },
           {
             Type: 'Subtrack',
             Content: [match[1]],
@@ -194,8 +197,7 @@ const sDef = [
       {
         Type: 'Sfunc',
         Content: [
-          /^\^$/,
-          { Type: 'Subtrack' }
+          /^\^(([0-7x%])([',#b]*)([A-Zac-wyz]*)([',#b]*)([-_.=]*)(`*)([:>]*)|\[(([0-7x%][',#A-Za-wyz:>]*)+)\]([',#b]*)([-_.=]*)(`*)([:>]*))+/
         ]
       }
     ],
@@ -210,7 +212,11 @@ const sDef = [
             Content: [match[0]],
             Repeat: -1
           },
-          match[1].Content[1]
+          {
+            Type: 'Subtrack',
+            Content: Tokenizer.tokenizeTrack(match[1].Content[0].Content.slice(1)),
+            Repeat: -1
+          }
         ]
       }
     }
