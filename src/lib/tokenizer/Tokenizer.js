@@ -1067,7 +1067,7 @@ export default class Tokenizer {
   }
 
   tokenize() {
-    this.content = this.content.replace(/\r\n/g, '\n')
+    this.regularize()
     this.extractHeader()
     this.split()
     for (let i = 0, length = this.sections.length; i < length; i++) {
@@ -1106,6 +1106,10 @@ export default class Tokenizer {
       this.result.Sections.push(sec)
     }
     return this.result
+  }
+
+  regularize() {
+    this.content = this.content.replace(/\r\n/g, '\n')
   }
 
   split() {
