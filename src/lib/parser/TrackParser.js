@@ -402,7 +402,6 @@ export class TrackParser {
         }
         res.push(...pitches.slice(head - 1, tail).map((pitch) => pitch + delta))
       })
-      this.pushError(TmError.Types.Note.ChordOverride, {})
       if (!all.every((e) => e === 0)) this.pushError(TmError.Types.Note.ChordOverride, {})
       return res
     }, [0])
