@@ -304,7 +304,7 @@ export class TrackParser {
         const queue = this.Context.pitchQueue[this.Context.pitchQueue.length - this.Settings.Trace]
         pitchQueue.push(...queue)
         pitches.push(...[].concat(...queue.map((pitch) => this.Settings.Key.map((key) => key - this.Settings.Key[0] + pitch + delta))))
-        volumes.push(...[].concat(...new Array(queue.length).fill(this.getVolume(note.VolOp))))
+        volumes.push(...[].concat(...new Array(queue.length).fill(this.getVolume(note.VolOp + note.Pitches[0].VolOp))))
       } else {
         this.pushError(TmError.Types.Note.NoPrevious, { Expected: this.Settings.Trace, Actual: this.Context.pitchQueue.length })
       }
