@@ -273,26 +273,18 @@ export default {
   },
   Oct() {
     if (arguments.length === 0) return
-    if (arguments.length === 1) {
-      const oct = arguments[0]
-      const delta = (oct - Math.floor((this.Settings.Key[0] + 2) / 12)) * 12
+    if (!(arguments[0] instanceof Array)) {
+      const delta = (arguments[0] - Math.floor((this.Settings.Key[0] + 2) / 12)) * 12
       for (let i = 0, length = this.Settings.Key.length; i < length; i++) {
         this.Settings.Key[i] += delta
       }
     } else {
-      const octs = arguments[0]
-      const vols = arguments[1]
-      for (let i = 0, length = octs.length; i < length; i++) {
-        if (this.Settings.Key.length <= i) {
-          this.Settings.Key.push(this.Settings.Key[0] + (octs[i] - Math.floor((this.Settings.Key[0] + 2) / 12)) * 12)
-        } else {
-          this.Settings.Key[i] += (octs[i] - Math.floor((this.Settings.Key[i] + 2) / 12)) * 12
-        }
-      }
-      this.Settings.Volume = vols
+      const tonality = (this.Settings.Key[0] - 2) % 12
+      this.Settings.Key = arguments[0].map((oct) => tonality + oct * 12)
+      if (arguments.length >= 2) this.Settings.Volume = arguments[1]
     }
-    // this.Settings.assignSetting('Octave', oct, (octave) => Number.isInteger(octave))
   },
+
   KeyOct(keyOct) {
     const match = keyOct.match(/^((#|b)\2*)?([A-G])(('|,)\5*)?/)
 
