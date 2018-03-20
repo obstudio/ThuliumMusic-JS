@@ -265,7 +265,23 @@ export default {
     this.Settings.assignSetting('Speed', speed, (speed) => speed > 0)
   },
   Key(key) {
-    const delta = key - this.Settings.Key[0]
+    let delta
+    if (typeof key === 'string') {
+      const match = arguments[0].match(/^((#|b)\2*)?([A-G])(('|,)\5*)?/)
+      const Tonality = {
+        'C': 0,
+        'G': 7,
+        'D': 2,
+        'A': 9,
+        'E': 4,
+        'B': -1,
+        'F': 5
+      }
+      delta = Tonality[match[3]] + (match[2] === undefined ? 0 : (match[2] === '#' ? match[1].length : -match[1].length)) +
+        (match[5] === undefined ? 0 : (match[5] === '\'' ? (12 * match[4].length) : (-12 * match[4].length))) - this.Settings.Key[0]
+    } else {
+      delta = key - this.Settings.Key[0]
+    }
     for (var i = 0, length = this.Settings.Key.length; i < length; i++) {
       this.Settings.Key[i] += delta
     }
@@ -274,23 +290,7 @@ export default {
   Oct() {
     if (arguments.length === 0) return
     if (!(arguments[0] instanceof Array)) {
-      let delta
-      if (typeof arguments[0] === 'string') {
-        const match = arguments[0].match(/^((#|b)\2*)?([A-G])(('|,)\5*)?/)
-        const Tonality = {
-          'C': 0,
-          'G': 7,
-          'D': 2,
-          'A': 9,
-          'E': 4,
-          'B': -1,
-          'F': 5
-        }
-        delta = Tonality[match[3]] + (match[2] === undefined ? 0 : (match[2] === '#' ? match[1].length : -match[1].length)) +
-          (match[5] === undefined ? 0 : (match[5] === '\'' ? (12 * match[4].length) : (-12 * match[4].length))) - this.Settings.Key[0]
-      } else {
-        delta = (arguments[0] - Math.floor((this.Settings.Key[0] + 2) / 12)) * 12
-      }
+      const delta = (arguments[0] - Math.floor((this.Settings.Key[0] + 2) / 12)) * 12
       for (let i = 0, length = this.Settings.Key.length; i < length; i++) {
         this.Settings.Key[i] += delta
       }
