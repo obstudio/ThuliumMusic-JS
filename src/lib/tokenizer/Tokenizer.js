@@ -1058,6 +1058,8 @@ export default class Tokenizer {
     this.content = content
     this.include = []
     this.sections = []
+    this.sectionIndex = []
+    this.trackIndex = []
     this.comments = []
     this.libs = undefined
     this.result = {
@@ -1122,6 +1124,7 @@ export default class Tokenizer {
         continue
       } else {
         secs.push(this.content.slice(lastIndex, match.index))
+        this.sectionIndex.push(match.index)
         lastIndex = match.index
       }
     }
