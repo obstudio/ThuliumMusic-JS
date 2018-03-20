@@ -272,7 +272,7 @@ const langDef = {
   ],
   root: [
     {
-      regex: /^([0-7x%])([',#b]*)([A-Zac-wyz]*)([',#b]*)([-_.=]*)(`*)([:>]*)/,
+      regex: /^([0-7x%])([',#b]*)([A-Zac-wyz]*)([:>]*)([-_.=]*)(`*)/,
       action: {
         token: 'note',
         transform(note) {
@@ -282,19 +282,20 @@ const langDef = {
               {
                 Degree: note[1],
                 PitOp: note[2] === undefined ? '' : note[2],
-                Chord: note[3] === undefined ? '' : note[3]
+                Chord: note[3] === undefined ? '' : note[3],
+                VolOp: note[4] === undefined ? '' : note[4]
               }
             ],
-            PitOp: note[4] === undefined ? '' : note[4],
+            PitOp: '',
+            VolOp: '',
             DurOp: note[5] === undefined ? '' : note[5],
-            VolOp: note[7] === undefined ? '' : note[7],
             Staccato: note[6] === undefined ? 0 : note[6].length
           }
         }
       }
     },
     {
-      regex: /^\[(([0-7x%][',#A-Za-wyz:>]*)+)\]([',#b]*)([-_.=]*)(`*)([:>]*)/,
+      regex: /^\[(([0-7x%][',#A-Za-wyz:>]*)+)\]([',#b]*)([:>]*)([-_.=]*)(`*)/,
       action: {
         token: 'chord',
         transform(note) {
@@ -310,9 +311,9 @@ const langDef = {
               }
             }),
             PitOp: note[3] === undefined ? '' : note[3],
-            DurOp: note[4] === undefined ? '' : note[4],
-            VolOp: note[6] === undefined ? '' : note[6],
-            Staccato: note[5] === undefined ? 0 : note[5].length
+            DurOp: note[5] === undefined ? '' : note[5],
+            VolOp: note[4] === undefined ? '' : note[4],
+            Staccato: note[6] === undefined ? 0 : note[6].length
           }
         }
       }
@@ -405,10 +406,9 @@ const langDef = {
       regex: /^!/,
       action: {
         token: 'local',
-        transform(_, content) {
+        transform() {
           return {
-            Type: 'LocalIndicator',
-            Settings: content
+            Type: 'LocalIndicator'
           }
         }
       }
@@ -460,7 +460,7 @@ const langDef = {
         transform(match) {
           return {
             Type: 'FUNCTION',
-            Name: 'KeyOct',
+            Name: 'Key',
             Argument: [
               {
                 Type: 'String',
@@ -551,7 +551,7 @@ const langDef = {
       }
     },
     {
-      regex: /^<([A-Za-z0-9]+:)?([A-Za-z0-9]+(\(.+?\))?)(,[A-Za-z0-9]+(\(.+?\))?)*>/,
+      regex: /^<([A-Za-z0-9]+:)?([A-Za-z0-9]+(\(.+?\))?)(, *[A-Za-z0-9]+(\(.+?\))?)*>/,
       action: {
         token: 'instr',
         transform(instrs) { // For ID
@@ -1123,27 +1123,60 @@ export default class Tokenizer {
       if (match.index === 0) {
         continue
       } else {
-        secs.push(this.content.slice(lastIndex, match.index))
-        this.sectionIndex.push(match.index)
+        const tempSec = this.content.slice(lastIndex, match.index)
+        if (tempSec.trim() !== '') {
+          secs.push(tempSec)
+          this.sectionIndex.push(lastIndex)
+        }
         lastIndex = match.index
       }
     }
-    secs.push(this.content.slice(lastIndex))
+    const tempSec = this.content.slice(lastIndex)
+    if (tempSec.trim() !== '') {
+      secs.push(tempSec)
+      this.sectionIndex.push(lastIndex)
+    }
     for (let i = 0, length = secs.length; i < length; i++) {
-      const section = []
+      let baseIndex = 0
       const comments = []
       const tras = secs[i].replace(/^\/\/(.*)/gm, (str, comment) => {
+        baseIndex += str.length
         comments.push(comment)
         return ''
-      }).split(/\n\n/)
-      for (let j = 0, length2 = tras.length; j < length2; j++) {
-        const tra = tras[j]
-        if (tra !== '') {
-          section.push(tra.replace(/\n/, ''))
-        }
-      }
+      })
+      const temp = this.splitSection(tras, baseIndex)
       this.comments.push(comments)
-      this.sections.push(section)
+      this.sections.push(temp.tracks)
+      this.trackIndex.push(temp.trackIndex)
+    }
+  }
+
+  splitSection(content, baseIndex) {
+    const pattern = /(^\n)+/mg
+    let match
+    let lastIndex = 0
+    const tracks = []
+    const trackIndex = []
+    while ((match = pattern.exec(content)) !== null) {
+      if (match.index === 0) {
+        continue
+      } else {
+        const tempTrack = content.slice(lastIndex, match.index)
+        if (tempTrack.trim() !== '') {
+          tracks.push(tempTrack)
+          trackIndex.push(lastIndex)
+        }
+        lastIndex = match.index
+      }
+    }
+    const tempTrack = content.slice(lastIndex)
+    if (tempTrack.trim() !== '') {
+      tracks.push(tempTrack)
+      trackIndex.push(lastIndex)
+    }
+    return {
+      tracks,
+      trackIndex
     }
   }
 
