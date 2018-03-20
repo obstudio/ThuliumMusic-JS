@@ -510,7 +510,7 @@ const langDef = {
     {
       regex: /^\(/,
       action: {
-        token: 'sfunc',
+        token: 'usfunc',
         next: 'Dynamic',
         transform(_, content) {
           return {
@@ -925,6 +925,7 @@ export default class Tokenizer {
     track = track.trim()
     const stateStore = [[]]
     const states = ['root']
+    const sfStates = [false]
     let depth = 0
     let pointer = 0
     while (pointer < track.length) {
@@ -949,49 +950,56 @@ export default class Tokenizer {
         } else {
           action = element.action
         }
+        if (action.token === 'usfunc' || action.token === 'undef') {
+          sfStates[depth] = true
+        }
         if ('next' in action) {
           if (action.token !== '@pass') {
             stateStore[depth].push(((p) => (content) => Object.assign(action.transform(match, content), { StartIndex: p }))(pointer))
           }
           if (action.next === '@pop') {
             depth -= 1
+            states.pop()
             const state = stateStore.pop()
-            for (let i = 0; i < sDef.length; i++) {
-              const s = sDef[i]
-              for (let j = 0; j <= state.length - s.pat.length; j++) {
-                let isMatch = true
-                for (let k = 0; k < s.pat.length; k++) {
-                  if (s.pat[k].Type === state[j + k].Type) {
-                    if (s.pat[k].Type === 'Sfunc') {
-                      for (let l = 0; l < s.pat[k].Content.length; l++) {
-                        if (s.pat[k].Content[l] instanceof RegExp) {
-                          if (state[j + k].Content[l].Type !== 'Dyn' || !s.pat[k].Content[l].test(state[j + k].Content[l].Content)) {
+            const sfState = sfStates.pop()
+            if (sfState) {
+              for (let i = 0; i < sDef.length; i++) {
+                const s = sDef[i]
+                for (let j = 0; j <= state.length - s.pat.length; j++) {
+                  let isMatch = true
+                  for (let k = 0; k < s.pat.length; k++) {
+                    if (s.pat[k].Type === state[j + k].Type) {
+                      if (s.pat[k].Type === 'Sfunc') {
+                        for (let l = 0; l < s.pat[k].Content.length; l++) {
+                          if (s.pat[k].Content[l] instanceof RegExp) {
+                            if (state[j + k].Content[l].Type !== 'Dyn' || !s.pat[k].Content[l].test(state[j + k].Content[l].Content)) {
+                              isMatch = false
+                              break
+                            }
+                          } else if (s.pat[k].Content[l].Type !== state[j + k].Content[l].Type) {
                             isMatch = false
                             break
                           }
-                        } else if (s.pat[k].Content[l].Type !== state[j + k].Content[l].Type) {
-                          isMatch = false
-                          break
                         }
+                      } else if (s.pat[k].Type === 'Undef' && s.pat[k].Content !== state[j + k].Content) {
+                        isMatch = false
+                        break
                       }
-                    } else if (s.pat[k].Type === 'Undef' && s.pat[k].Content !== state[j + k].Content) {
+                    } else {
                       isMatch = false
                       break
                     }
-                  } else {
-                    isMatch = false
-                    break
                   }
+                  if (!isMatch) continue
+                  state.splice(j, s.pat.length, s.transform(state.slice(j, j + s.pat.length)))
                 }
-                if (!isMatch) continue
-                state.splice(j, s.pat.length, s.transform(state.slice(j, j + s.pat.length)))
               }
             }
-            states.pop()
             stateStore[depth].push(stateStore[depth].pop()(state))
           } else {
             stateStore.push([])
             states.push(action.next)
+            sfStates.push(false)
             depth += 1
           }
         } else {
@@ -1008,35 +1016,38 @@ export default class Tokenizer {
       }
     }
     const state = stateStore[0]
-    for (let i = 0; i < sDef.length; i++) {
-      const s = sDef[i]
-      for (let j = 0; j <= state.length - s.pat.length; j++) {
-        let isMatch = true
-        for (let k = 0; k < s.pat.length; k++) {
-          if (s.pat[k].Type === state[j + k].Type) {
-            if (s.pat[k].Type === 'Sfunc') {
-              for (let l = 0; l < s.pat[k].Content.length; l++) {
-                if (s.pat[k].Content[l] instanceof RegExp) {
-                  if (state[j + k].Content[l].Type !== 'Dyn' || !s.pat[k].Content[l].test(state[j + k].Content[l].Content)) {
+    const sfState = sfStates.pop()
+    if (sfState) {
+      for (let i = 0; i < sDef.length; i++) {
+        const s = sDef[i]
+        for (let j = 0; j <= state.length - s.pat.length; j++) {
+          let isMatch = true
+          for (let k = 0; k < s.pat.length; k++) {
+            if (s.pat[k].Type === state[j + k].Type) {
+              if (s.pat[k].Type === 'Sfunc') {
+                for (let l = 0; l < s.pat[k].Content.length; l++) {
+                  if (s.pat[k].Content[l] instanceof RegExp) {
+                    if (state[j + k].Content[l].Type !== 'Dyn' || !s.pat[k].Content[l].test(state[j + k].Content[l].Content)) {
+                      isMatch = false
+                      break
+                    }
+                  } else if (s.pat[k].Content[l].Type !== state[j + k].Content[l].Type) {
                     isMatch = false
                     break
                   }
-                } else if (s.pat[k].Content[l].Type !== state[j + k].Content[l].Type) {
-                  isMatch = false
-                  break
                 }
+              } else if (s.pat[k].Type === 'Undef' && s.pat[k].Content !== state[j + k].Content) {
+                isMatch = false
+                break
               }
-            } else if (s.pat[k].Type === 'Undef' && s.pat[k].Content !== state[j + k].Content) {
+            } else {
               isMatch = false
               break
             }
-          } else {
-            isMatch = false
-            break
           }
+          if (!isMatch) continue
+          state.splice(j, s.pat.length, s.transform(state.slice(j, j + s.pat.length)))
         }
-        if (!isMatch) continue
-        state.splice(j, s.pat.length, s.transform(state.slice(j, j + s.pat.length)))
       }
     }
     return state
