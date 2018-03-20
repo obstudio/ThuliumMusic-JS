@@ -508,6 +508,24 @@ const langDef = {
       }
     },
     {
+      regex: /^\(([+-]\d+)\)/,
+      action: {
+        token: 'sfunc',
+        transform(match) {
+          return {
+            Type: 'FUNCTION',
+            Name: 'KeyShift',
+            Argument: [
+              {
+                Type: 'Number',
+                Content: Number(match[1])
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
       regex: /^\(/,
       action: {
         token: 'usfunc',
