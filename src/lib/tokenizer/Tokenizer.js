@@ -919,7 +919,6 @@ const libDef = [
 
 export default class Tokenizer {
   /**
-   *
    * @param {string} track
    */
   static tokenizeTrack(track) {
@@ -952,7 +951,7 @@ export default class Tokenizer {
         }
         if ('next' in action) {
           if (action.token !== '@pass') {
-            stateStore[depth].push((content) => action.transform(match, content))
+            stateStore[depth].push(((p) => (content) => Object.assign(action.transform(match, content), { StartIndex: p }))(pointer))
           }
           if (action.next === '@pop') {
             depth -= 1
@@ -997,7 +996,7 @@ export default class Tokenizer {
           }
         } else {
           if (action.token !== '@pass') {
-            stateStore[depth].push(action.transform(match))
+            stateStore[depth].push(Object.assign(action.transform(match), { StartIndex: pointer }))
           }
         }
         pointer += match[0].length
@@ -1050,6 +1049,7 @@ export default class Tokenizer {
       return heads.includes(element.Type) || (element.Type === 'FUNCTION' && settings.includes(element.Name))
     })
   }
+
   /**
    * Construct a tokenizer
    * @param {string} content Tm string to tokenize
