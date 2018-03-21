@@ -949,8 +949,9 @@ export default class Tokenizer {
     while (pointer < length) {
       const temp = track.slice(pointer)
       const slice = temp.trimLeft()
-      let matched = false
+      if (slice === '') break
       pointer += temp.length - slice.length
+      let matched = false
       const patterns = langDef[states[depth]]
       const patternLength = patterns.length
 
