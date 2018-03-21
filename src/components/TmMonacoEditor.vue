@@ -12,11 +12,10 @@ export default {
     TmLoading
   },
   data() {
-    return {
-      player: undefined
-    }
+    return {}
   },
   mounted() {
+    this.player = undefined
     this.showEditor()
   },
   methods: {
