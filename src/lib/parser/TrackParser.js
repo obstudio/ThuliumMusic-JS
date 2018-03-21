@@ -248,8 +248,10 @@ export class TrackParser {
         })
         break
       case 'Undefined':
-        this.pushError(TmError.Types.Track.Undefined, { Actual: token })
-        break
+      case 'Sfunc':
+        throw new Error()
+        // this.pushError(TmError.Types.Track.Undefined, { Actual: token })
+        // break
       case 'Clef':
       case 'Whitespace':
         break
