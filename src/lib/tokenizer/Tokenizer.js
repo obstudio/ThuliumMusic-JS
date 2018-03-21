@@ -940,34 +940,26 @@ export default class Tokenizer {
    * @param {string} track
    */
   static tokenizeTrack(track) {
-    track = track.trim()
     const stateStore = [[]]
     const states = ['root']
     const sfStates = [false]
+    const length = track.length
     let depth = 0
     let pointer = 0
-    while (pointer < track.length) {
+    while (pointer < length) {
       const temp = track.slice(pointer)
-      const slice = temp.trim()
+      const slice = temp.trimLeft()
       let matched = false
       pointer += temp.length - slice.length
       const patterns = langDef[states[depth]]
+      const patternLength = patterns.length
 
-      for (let index = 0; index < patterns.length; index++) {
+      for (let index = 0; index < patternLength; index++) {
         const element = patterns[index]
         const match = slice.match(element.regex)
         if (match === null) continue
-        let action
         matched = true
-        if ('cases' in element.action) {
-          if (match[0] in element.action.cases) {
-            action = element.action.cases[match[0]]
-          } else {
-            action = element.action.cases['@default']
-          }
-        } else {
-          action = element.action
-        }
+        const action = 'cases' in element.action ? match[0] in element.action.cases ? element.action.cases[match[0]] : element.action.cases['@default'] : element.action
         if (action.token === 'usfunc' || action.token === 'undef') {
           sfStates[depth] = true
         }
@@ -989,15 +981,14 @@ export default class Tokenizer {
             sfStates.push(false)
             depth += 1
           }
-        } else {
-          if (action.token !== '@pass') {
-            stateStore[depth].push(Object.assign(action.transform(match), { StartIndex: pointer }))
-          }
+        } else if (action.token !== '@pass') {
+          stateStore[depth].push(Object.assign(action.transform(match), { StartIndex: pointer }))
         }
         pointer += match[0].length
         break
       }
       if (!matched) {
+        throw new Error() // Temporarily added to debug TODO: remove in the future
         // stateStore.push(track.charAt(pointer))
         // pointer += 1
       }
@@ -1097,10 +1088,7 @@ export default class Tokenizer {
         } else {
           sec.Tracks.push({
             ID: null,
-            Instruments: [{
-              Instrument: '',
-              Proportion: null
-            }],
+            Instruments: [],
             Content: tra
           })
         }
@@ -1165,7 +1153,7 @@ export default class Tokenizer {
         const tempTrack = content.slice(lastIndex, match.index)
         if (tempTrack.trim() !== '') {
           tracks.push(tempTrack)
-          trackIndex.push(lastIndex)
+          trackIndex.push(lastIndex + baseIndex)
         }
         lastIndex = match.index
       }
@@ -1173,7 +1161,7 @@ export default class Tokenizer {
     const tempTrack = content.slice(lastIndex)
     if (tempTrack.trim() !== '') {
       tracks.push(tempTrack)
-      trackIndex.push(lastIndex)
+      trackIndex.push(lastIndex + baseIndex)
     }
     return {
       tracks,
