@@ -36,6 +36,19 @@ export class TrackParser {
     }
   }
 
+  static isDup(arr) {
+    const length = arr.length
+    let i = -1
+    while (i++ < length) {
+      for (let j = i + 1; j < length; ++j) {
+        if (arr[i] === arr[j]) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
   constructor(track, sectionSettings, libraries, isSubtrack = false) {
     this.isSubtrack = isSubtrack
     this.ID = track.ID
@@ -330,7 +343,7 @@ export class TrackParser {
         }
       }
     }
-    if (new Set(pitches).size !== pitches.length) {
+    if (TrackParser.isDup(pitches)) {
       this.pushError(TmError.Types.Note.Reduplicate, { Actual: pitches })
     }
     if (pitchQueue.length > 0) {
