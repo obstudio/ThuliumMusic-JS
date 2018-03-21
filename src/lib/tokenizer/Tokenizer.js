@@ -1056,11 +1056,13 @@ export default class Tokenizer {
     this.content = content
     this.include = []
     this.sections = []
+    this.baseIndex = 0
     this.sectionIndex = []
     this.trackIndex = []
     this.comments = []
     this.libs = undefined
     this.result = {
+      Comments: undefined,
       Library: [],
       Sections: []
     }
@@ -1176,19 +1178,29 @@ export default class Tokenizer {
   }
 
   extractHeader() {
-    this.content = this.content.replace(/^#\s*Include\s+"([^"]+)"/gm, (str, name) => {
-      this.result.Library.push({
-        Type: 'Package',
-        Path: name,
-        Content: new LibTokenizer(name, false).tokenize()
-      })
+    this.content = this.content.replace(/^\n*(\/\/.*\n)+\n*/, (str) => {
+      this.baseIndex += str.length
+      this.result.Comments = str.trim().replace(/^\/\//mg, '').split('\n')
       return ''
     })
-    const end = this.content.match(/^#\s*End/m)
-    if (end !== null) {
-      const parts = this.content.split(end[0])
-      this.result.Library.push(...new LibTokenizer(parts[0] + end[0]).tokenize())
-      this.content = parts[1]
+    if (this.content.startsWith('#')) {
+      this.content = this.content.replace(/^#\s*Include\s+"([^"\n]+)\n"/gm, (str, name) => {
+        this.baseIndex += str.length
+        this.result.Library.push({
+          Type: 'Package',
+          Path: name,
+          Content: new LibTokenizer(name, false).tokenize()
+        })
+        return ''
+      })
+      const end = this.content.match(/^#\s*End/m)
+      if (end !== null) {
+        const libLen = end.index + end[0].length
+        this.baseIndex += libLen
+        const libstr = this.content.slice(0, libLen)
+        this.result.Library.push(...new LibTokenizer(libstr).tokenize())
+        this.content = this.content.slice(end.index + end[0].length)
+      }
     }
   }
 }
