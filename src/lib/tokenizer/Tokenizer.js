@@ -1079,6 +1079,7 @@ export default class Tokenizer {
         Settings: [],
         Tracks: []
       }
+      let pointer = 0
       for (const track of this.sections[i]) {
         const tra = Tokenizer.tokenizeTrack(track)
         if (tra[0] instanceof Array) {
@@ -1089,16 +1090,20 @@ export default class Tokenizer {
             Instruments: instr,
             Content: tra
           })
+          pointer += 1
         } else if (tra[0].Type === 'LocalIndicator') {
           sec.Settings.push(...tra.slice(1))
+          this.trackIndex[i].splice(pointer, 1)
         } else if (Tokenizer.isHeadTrack(tra)) {
           this.result.Sections.push(...tra)
+          this.trackIndex[i].splice(pointer, 1)
         } else {
           sec.Tracks.push({
             ID: null,
             Instruments: [],
             Content: tra
           })
+          pointer += 1
         }
       }
       if (sec.Settings.length === 0 && sec.Tracks.length === 0) continue
