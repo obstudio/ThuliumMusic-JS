@@ -1003,36 +1003,41 @@ export default class Tokenizer {
 
   static mergeSimplifiedFunc(state) {
     for (let i = 0; i < sDef.length; i++) {
-      const s = sDef[i]
-      for (let j = 0; j <= state.length - s.pat.length; j++) {
-        let isMatch = true
-        for (let k = 0; k < s.pat.length; k++) {
-          if (s.pat[k].Type === state[j + k].Type) {
-            if (s.pat[k].Type === 'Sfunc') {
-              for (let l = 0; l < s.pat[k].Content.length; l++) {
-                if (s.pat[k].Content[l] instanceof RegExp) {
-                  if (state[j + k].Content[l].Type !== 'Dyn' || !s.pat[k].Content[l].test(state[j + k].Content[l].Content)) {
-                    isMatch = false
-                    break
-                  }
-                } else if (s.pat[k].Content[l].Type !== state[j + k].Content[l].Type) {
-                  isMatch = false
-                  break
-                }
-              }
-            } else if (s.pat[k].Type === 'Undef' && s.pat[k].Content !== state[j + k].Content) {
-              isMatch = false
-              break
-            }
-          } else {
-            isMatch = false
-            break
-          }
+      const pattern = sDef[i]
+      const patternLength = pattern.pat.length
+      for (let j = 0; j <= state.length - patternLength; j++) {
+        if (Tokenizer.compare(pattern.pat, patternLength, state, j)) {
+          state.splice(j, patternLength, pattern.transform(state.slice(j, j + patternLength)))
         }
-        if (!isMatch) continue
-        state.splice(j, s.pat.length, s.transform(state.slice(j, j + s.pat.length)))
       }
     }
+  }
+
+  static compare(pattern, patternLength, state, startIndex) {
+    for (let k = 0; k < patternLength; k++) {
+      const part = pattern[k]
+      const ori = state[startIndex + k]
+      if (part.Type !== ori.Type) return false
+
+      switch (part.Type) {
+      case 'Sfunc':
+        for (let l = 0, length = part.Content.length; l < length; l++) {
+          if (part.Content[l] instanceof RegExp) {
+            if (ori.Content[l].Type !== 'Dyn' || !part.Content[l].test(ori.Content[l].Content)) {
+              return false
+            }
+          } else if (part.Content[l].Type !== ori.Content[l].Type) {
+            return false
+          }
+        }
+        break
+      case 'Undef':
+        if (part.Content !== ori.Content) {
+          return false
+        }
+      }
+    }
+    return true
   }
 
   static isHeadTrack(track) {
