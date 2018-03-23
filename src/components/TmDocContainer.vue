@@ -4,7 +4,6 @@
 </template>
 
 <script>
-import monaco from '@/Editor'
 export default {
   name: 'TmDocContainer',
   data() {
@@ -22,10 +21,12 @@ export default {
       this.render(this.doc).then(ret => {
         this.content = ret
         this.$nextTick(() => {
-          const codes = this.$el.getElementsByClassName('language-tm')
-          Array.prototype.forEach.call(codes, el => {
-            el.setAttribute('data-lang', 'tm')
-            monaco.editor.colorizeElement(el, { theme: 'tm' })
+          import('@/Editor').then(() => {
+            const codes = this.$el.getElementsByClassName('language-tm')
+            Array.prototype.forEach.call(codes, el => {
+              el.setAttribute('data-lang', 'tm')
+              window.monaco.editor.colorizeElement(el, { theme: 'tm' })
+            })
           })
         })
       })
