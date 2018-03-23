@@ -208,7 +208,7 @@ const LangDef = {
         }
       },
       {
-        regex: /\(|\^|:|1=/,
+        regex: /\(|\^|:|1=|~/,
         action: {
           token: 'func'
         }
@@ -331,7 +331,7 @@ const LangDef = {
         }
       },
       {
-        regex: /\d+\.\d+|\d+\/\d+|Log2\(\d+\)([+-]\d+)?/,
+        regex: /\d+\/\d+|\d+(\.\d+)?|Log2\(\d+\)([+-]\d+)?/,
         action: {
           token: 'number'
         }
