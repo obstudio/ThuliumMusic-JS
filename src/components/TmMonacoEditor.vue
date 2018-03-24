@@ -5,7 +5,7 @@
 <script>
 import * as FileSaver from 'file-saver'
 import TmLoading from './TmLoading.vue'
-import monaco from '@/Editor'
+import { registerPlayCommand } from '@/Editor'
 export default {
   name: 'TmMonacoEditor',
   components: {
@@ -20,21 +20,22 @@ export default {
   },
   methods: {
     showEditor() {
-      const model = monaco.editor.createModel(
+      const model = window.monaco.editor.createModel(
         localStorage.getItem('lastText'),
         'tm'
       )
-      const editor = monaco.editor.create(this.$el, {
+      const editor = window.monaco.editor.create(this.$el, {
         model,
         language: 'tm',
         theme: 'tm',
         folding: false
       })
+      registerPlayCommand(editor)
       editor.addAction({
         id: 'tm-save',
         label: 'Save File',
         keybindings: [
-          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S
+          window.monaco.KeyMod.CtrlCmd | window.monaco.KeyCode.KEY_S
         ],
         precondition: null,
         keybindingContext: null,
@@ -58,7 +59,7 @@ export default {
         id: 'tm-play',
         label: 'Play/Pause',
         keybindings: [
-          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_P
+          window.monaco.KeyMod.CtrlCmd | window.monaco.KeyCode.KEY_P
         ],
         precondition: null,
         keybindingContext: null,
@@ -84,7 +85,7 @@ export default {
         id: 'tm-stop',
         label: 'Stop Playing',
         keybindings: [
-          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_T
+          window.monaco.KeyMod.CtrlCmd | window.monaco.KeyCode.KEY_T
         ],
         precondition: null,
         keybindingContext: null,
@@ -118,7 +119,7 @@ export default {
               editor.executeEdits('dnd', [
                 {
                   identifier: 'drag & drop',
-                  range: new monaco.Range(
+                  range: new window.monaco.Range(
                     1,
                     1,
                     editor.getModel().getLineCount(),

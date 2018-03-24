@@ -116,7 +116,7 @@ const sDef = [
         ]
       },
       {
-        Type: 'Subtrack'
+        Type: ['Note', 'FUNCTION']
       }
     ],
     transform(match) {
@@ -125,7 +125,11 @@ const sDef = [
         Name: 'Fermata',
         Simplified: true,
         Argument: [
-          match[1]
+          {
+            Type: 'Subtrack',
+            Repeat: -1,
+            Content: [match[1]]
+          }
         ]
       }
     }
@@ -942,7 +946,7 @@ export default class Tokenizer {
   static tokenizeTrack(track) {
     const stateStore = [[]]
     const states = ['root']
-    const sfStates = [false]
+    const sfStates = [0]
     const length = track.length
     let depth = 0
     let pointer = 0
@@ -962,7 +966,7 @@ export default class Tokenizer {
         matched = true
         const action = 'cases' in element.action ? match[0] in element.action.cases ? element.action.cases[match[0]] : element.action.cases['@default'] : element.action
         if (action.token === 'usfunc' || action.token === 'undef') {
-          sfStates[depth] = true
+          sfStates[depth] += 1
         }
         if ('next' in action) {
           if (action.token !== '@pass') {
@@ -972,14 +976,12 @@ export default class Tokenizer {
             depth -= 1
             states.pop()
             const state = stateStore.pop()
-            if (sfStates.pop()) {
-              Tokenizer.mergeSimplifiedFunc(state)
-            }
+            Tokenizer.mergeSimplifiedFunc(state, sfStates.pop())
             stateStore[depth].push(stateStore[depth].pop()(state))
           } else {
             stateStore.push([])
             states.push(action.next)
-            sfStates.push(false)
+            sfStates.push(0)
             depth += 1
           }
         } else if (action.token !== '@pass') {
@@ -995,49 +997,61 @@ export default class Tokenizer {
       }
     }
     const state = stateStore[0]
-    if (sfStates.pop()) {
-      Tokenizer.mergeSimplifiedFunc(state)
-    }
+    Tokenizer.mergeSimplifiedFunc(state, sfStates.pop())
     return state
   }
 
-  static mergeSimplifiedFunc(state) {
-    for (let i = 0; i < sDef.length; i++) {
-      const pattern = sDef[i]
-      const patternLength = pattern.pat.length
-      for (let j = 0; j <= state.length - patternLength; j++) {
-        if (Tokenizer.compare(pattern.pat, patternLength, state, j)) {
-          state.splice(j, patternLength, pattern.transform(state.slice(j, j + patternLength)))
+  static mergeSimplifiedFunc(state, count) {
+    if (count === 0) return
+    let lastCount = -1
+    while (lastCount !== count) {
+      lastCount = count
+      for (let i = 0; i < sDef.length; i++) {
+        const pattern = sDef[i]
+        const patternLength = pattern.pat.length
+        for (let j = 0; j <= state.length - patternLength; j++) {
+          const status = Tokenizer.compare(pattern.pat, patternLength, state, j)
+          if (status !== -1) {
+            state.splice(j, patternLength, pattern.transform(state.slice(j, j + patternLength)))
+            count -= status
+            if (count === 0) return
+          }
         }
       }
     }
   }
 
   static compare(pattern, patternLength, state, startIndex) {
+    let count = 0
     for (let k = 0; k < patternLength; k++) {
       const part = pattern[k]
       const ori = state[startIndex + k]
-      if (part.Type !== ori.Type) return false
-
+      if (!Tokenizer.sameType(part, ori)) return -1
       switch (part.Type) {
       case 'Sfunc':
         for (let l = 0, length = part.Content.length; l < length; l++) {
           if (part.Content[l] instanceof RegExp) {
             if (ori.Content[l].Type !== 'Dyn' || !part.Content[l].test(ori.Content[l].Content)) {
-              return false
+              return -1
             }
           } else if (part.Content[l].Type !== ori.Content[l].Type) {
-            return false
+            return -1
           }
         }
+        count += 1
         break
       case 'Undef':
         if (part.Content !== ori.Content) {
-          return false
+          return -1
         }
+        count += 1
       }
     }
-    return true
+    return count
+  }
+
+  static sameType(pat, sta) {
+    return typeof pat.Type === 'string' ? pat.Type === sta.Type : pat.Type.includes(sta.Type)
   }
 
   static isHeadTrack(track) {

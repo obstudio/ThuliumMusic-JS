@@ -1,4 +1,7 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/edcore.main'
+import Tokenizer from './lib/tokenizer/Tokenizer'
+import Player from './lib/player'
+
 const ColorRules = [
   { token: 'undef', foreground: 'FF0000' },
   { token: 'comment', foreground: '008800' },
@@ -523,6 +526,18 @@ const LangDef = {
   tokenPostfix: '.sml',
   defaultToken: 'undef'
 }
+
+let commandId = ''
+export function registerPlayCommand(editor) {
+  commandId = editor.addCommand(monaco.KeyCode.NumLock, (_, index, result) => {
+    let secIndex = 0
+    new Player({
+      Library: result.Library,
+      Sections: result.Sections.filter((sec) => sec.Type !== 'Section' || (secIndex++ === index))
+    }).play()
+  }, '')
+}
+
 function defineLanguage() {
   monaco.languages.register({
     id: 'tm',
@@ -537,14 +552,7 @@ function defineLanguage() {
   monaco.languages.setMonarchTokensProvider('tm', LangDef)
   monaco.languages.registerDefinitionProvider('tm', {
     provideDefinition(model, position, token) {
-      const matches = model.findMatches(
-        '@[A-Za-z0-9]+',
-        false,
-        true,
-        false,
-        '',
-        true
-      )
+      const matches = model.findMatches('@[A-Za-z0-9]+', false, true, false, '', true)
       const trueMatch = matches.find(
         match =>
           match.range.startLineNumber === position.lineNumber &&
@@ -553,14 +561,7 @@ function defineLanguage() {
           match.range.endColumn >= position.column
       )
       if (!trueMatch) return
-      const def = model.findMatches(
-        `<*${trueMatch.matches[0].slice(1)}*>`,
-        false,
-        false,
-        true,
-        '',
-        false
-      )[0]
+      const def = model.findMatches(`<*${trueMatch.matches[0].slice(1)}*>`, false, false, true, '', false)[0]
       return {
         uri: model.uri,
         range: def.range
@@ -609,6 +610,33 @@ function defineLanguage() {
       ]
     }
   })
+  monaco.languages.registerCodeLensProvider('tm', {
+    provideCodeLenses(model, token) {
+      model.setEOL(0)
+      const content = model.getValue(1)
+      const tokenizer = new Tokenizer(content)
+      tokenizer.tokenize()
+      return tokenizer.sectionIndex.map((ind, i) => {
+        const position = model.getPositionAt(tokenizer.baseIndex + ind)
+        return {
+          range: {
+            startLineNumber: position.lineNumber,
+            startColumn: position.column,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column
+          },
+          id: `Section ${i + 1}`,
+          command: {
+            id: commandId,
+            title: `Section ${i + 1}`,
+            arguments: [i, tokenizer.result]
+          }
+        }
+      })
+    },
+    resolveCodeLens(model, codeLens, token) {
+      return codeLens
+    }
+  })
 }
 defineLanguage()
-export default monaco
