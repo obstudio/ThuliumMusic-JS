@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import ElementUI from 'element-ui'
+import VueI18n from 'vue-i18n'
 import Icon from 'vue-awesome/components/Icon'
 import App from './App'
 import router from './router'
@@ -8,6 +9,7 @@ import 'element-ui/lib/theme-chalk/index.css'
 import 'element-ui/lib/theme-chalk/display.css'
 import 'vue-awesome/icons'
 
+Vue.use(VueI18n)
 Vue.use(ElementUI)
 extendVue(Vue)
 Vue.component('icon', Icon)
