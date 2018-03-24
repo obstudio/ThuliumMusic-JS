@@ -529,12 +529,29 @@ const LangDef = {
 
 let commandId = ''
 export function registerPlayCommand(editor) {
-  commandId = editor.addCommand(monaco.KeyCode.NumLock, (_, index, result) => {
-    let secIndex = 0
-    new Player({
-      Library: result.Library,
-      Sections: result.Sections.filter((sec) => sec.Type !== 'Section' || (secIndex++ === index))
-    }).play()
+  commandId = editor.addCommand(monaco.KeyCode.NumLock, (_, result, index, trackIndex) => {
+    if (trackIndex === undefined) {
+      let secIndex = 0
+      new Player({
+        Library: result.Library,
+        Sections: result.Sections.filter((sec) => sec.Type !== 'Section' || (secIndex++ === index))
+      }).play()
+    } else {
+      let secIndex = 0
+      new Player({
+        Library: result.Library,
+        Sections: result.Sections.filter((sec) => sec.Type !== 'Section' || (secIndex++ === index)).map((sec) => {
+          if (sec.Type === 'Section') {
+            return {
+              Type: 'Section',
+              Settings: sec.Settings,
+              Tracks: [sec.Tracks[trackIndex]]
+            }
+          }
+          return sec
+        })
+      }).play()
+    }
   }, '')
 }
 
@@ -629,10 +646,29 @@ function defineLanguage() {
           command: {
             id: commandId,
             title: `Section ${i + 1}`,
-            arguments: [i, tokenizer.result]
+            arguments: [tokenizer.result, i]
           }
         }
-      })
+      }).concat(...tokenizer.trackIndex.map((tracks, index) => {
+        const base = tokenizer.baseIndex + tokenizer.sectionIndex[index]
+        return tracks.map((track, i) => {
+          const position = model.getPositionAt(track + base)
+          return {
+            range: {
+              startLineNumber: position.lineNumber,
+              startColumn: position.column,
+              endLineNumber: position.lineNumber,
+              endColumn: position.column
+            },
+            id: `Section ${index} Track ${i + 1}`,
+            command: {
+              id: commandId,
+              title: `Track ${i + 1}`,
+              arguments: [tokenizer.result, index, i]
+            }
+          }
+        })
+      }))
     },
     resolveCodeLens(model, codeLens, token) {
       return codeLens
