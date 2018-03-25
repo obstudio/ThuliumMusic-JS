@@ -23,7 +23,11 @@ export default {
   components: {
     TmLoading,
     TmMonaco: () => ({
-      component: import(/* webpackChunkName: "monaco" */'./TmMonacoEditor.vue'),
+      component: new Promise((resolve, reject) => {
+        window.require(['vs/editor/editor.main'], () => {
+          import(/* webpackChunkName: "monaco" */'./TmMonacoEditor.vue').then(resolve)
+        })
+      }),
       loading: TmLoading,
       error: TmLoading,
       delay: 200,

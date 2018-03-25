@@ -15,11 +15,11 @@ extendVue(Vue)
 Vue.component('icon', Icon)
 Vue.config.productionTip = false
 
-self.MonacoEnvironment = {
+/* self.MonacoEnvironment = {
   getWorkerUrl (moduleId, label) {
-    return './editor.worker.js'
+    return './static/js/editor.worker.js'
   }
-}
+} */
 
 /* eslint-disable no-new */
 new Vue({

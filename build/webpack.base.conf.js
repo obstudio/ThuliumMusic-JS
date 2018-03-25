@@ -23,7 +23,7 @@ module.exports = {
   context: path.resolve(__dirname, '../'),
   entry: {
     app: './src/main.js',
-    'editor.worker': 'monaco-editor/esm/vs/editor/editor.worker.js',
+    // 'editor.worker': 'monaco-editor/esm/vs/editor/editor.worker.js',
   },
   output: {
     path: config.build.assetsRoot,

@@ -21,7 +21,11 @@ export default {
       this.render(this.doc).then(ret => {
         this.content = ret
         this.$nextTick(() => {
-          import('@/Editor').then(() => {
+          new Promise((resolve, reject) => {
+            window.require(['vs/editor/editor.main'], () => {
+              import('@/Editor').then(resolve)
+            })
+          }).then(() => {
             const codes = this.$el.getElementsByClassName('language-tm')
             Array.prototype.forEach.call(codes, el => {
               el.setAttribute('data-lang', 'tm')

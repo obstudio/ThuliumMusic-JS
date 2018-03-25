@@ -1,4 +1,4 @@
-import * as monaco from 'monaco-editor/esm/vs/editor/edcore.main'
+// import * as monaco from 'monaco-editor/esm/vs/editor/edcore.main'
 import Tokenizer from './lib/tokenizer/Tokenizer'
 import Player from './lib/player'
 
@@ -529,7 +529,7 @@ const LangDef = {
 
 let commandId = ''
 export function registerPlayCommand(editor) {
-  commandId = editor.addCommand(monaco.KeyCode.NumLock, (_, result, index, trackIndex) => {
+  commandId = editor.addCommand(window.monaco.KeyCode.NumLock, (_, result, index, trackIndex) => {
     if (trackIndex === undefined) {
       let secIndex = 0
       new Player({
@@ -556,18 +556,18 @@ export function registerPlayCommand(editor) {
 }
 
 function defineLanguage() {
-  monaco.languages.register({
+  window.monaco.languages.register({
     id: 'tm',
     extensions: ['tm']
   })
-  monaco.editor.defineTheme('tm', {
+  window.monaco.editor.defineTheme('tm', {
     base: 'vs-dark',
     inherit: true,
     rules: ColorRules,
     colors: {}
   })
-  monaco.languages.setMonarchTokensProvider('tm', LangDef)
-  monaco.languages.registerDefinitionProvider('tm', {
+  window.monaco.languages.setMonarchTokensProvider('tm', LangDef)
+  window.monaco.languages.registerDefinitionProvider('tm', {
     provideDefinition(model, position, token) {
       const matches = model.findMatches('@[A-Za-z0-9]+', false, true, false, '', true)
       const trueMatch = matches.find(
@@ -585,7 +585,7 @@ function defineLanguage() {
       }
     }
   })
-  monaco.languages.registerCompletionItemProvider('tm', {
+  window.monaco.languages.registerCompletionItemProvider('tm', {
     triggerCharacters: ['<', '@'],
     provideCompletionItems(model, position, token) {
       const char = model.getValueInRange({
@@ -598,7 +598,7 @@ function defineLanguage() {
         return [
           {
             label: 'Piano',
-            kind: monaco.languages.CompletionItemKind.Variable,
+            kind: window.monaco.languages.CompletionItemKind.Variable,
             documentation: 'Piano',
             insertText: 'Piano>'
           }
@@ -614,20 +614,20 @@ function defineLanguage() {
         )
         return matches.map(match => ({
           label: match.matches[1],
-          kind: monaco.languages.CompletionItemKind.Variable,
+          kind: window.monaco.languages.CompletionItemKind.Variable,
           insertText: match.matches[1]
         }))
       }
       return [
         {
           label: 'Oct',
-          kind: monaco.languages.CompletionItemKind.Function,
+          kind: window.monaco.languages.CompletionItemKind.Function,
           insertText: ''
         }
       ]
     }
   })
-  monaco.languages.registerCodeLensProvider('tm', {
+  window.monaco.languages.registerCodeLensProvider('tm', {
     provideCodeLenses(model, token) {
       model.setEOL(0)
       const content = model.getValue(1)
