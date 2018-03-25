@@ -17,6 +17,8 @@
 
 <script>
 import TmLoading from './TmLoading.vue'
+import { defineLanguage } from '@/Editor'
+import TmMonacoEditor from './TmMonacoEditor.vue'
 
 export default {
   name: 'TmEditor',
@@ -25,7 +27,8 @@ export default {
     TmMonaco: () => ({
       component: new Promise((resolve, reject) => {
         window.require(['vs/editor/editor.main'], () => {
-          import(/* webpackChunkName: "monaco" */'./TmMonacoEditor.vue').then(resolve)
+          defineLanguage()
+          resolve(TmMonacoEditor)
         })
       }),
       loading: TmLoading,

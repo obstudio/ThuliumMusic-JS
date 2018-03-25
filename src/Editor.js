@@ -555,7 +555,13 @@ export function registerPlayCommand(editor) {
   }, '')
 }
 
-function defineLanguage() {
+let defined = false
+export function defineLanguage() {
+  if (!defined) {
+    defined = true
+  } else {
+    return
+  }
   window.monaco.languages.register({
     id: 'tm',
     extensions: ['tm']
@@ -675,4 +681,3 @@ function defineLanguage() {
     }
   })
 }
-defineLanguage()

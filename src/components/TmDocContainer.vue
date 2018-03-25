@@ -4,6 +4,7 @@
 </template>
 
 <script>
+import { defineLanguage } from '@/Editor'
 export default {
   name: 'TmDocContainer',
   data() {
@@ -23,7 +24,8 @@ export default {
         this.$nextTick(() => {
           new Promise((resolve, reject) => {
             window.require(['vs/editor/editor.main'], () => {
-              import('@/Editor').then(resolve)
+              defineLanguage()
+              resolve()
             })
           }).then(() => {
             const codes = this.$el.getElementsByClassName('language-tm')
