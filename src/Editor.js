@@ -50,10 +50,25 @@ const LangDef = {
         }
       },
       {
+        regex: /# *Function/,
+        action: {
+          token: 'macro',
+          next: 'Function',
+          nextEmbedded: 'text/javascript'
+        }
+      },
+      {
         regex: /# *Include/,
         action: {
           token: '@rematch',
           next: '@Inc'
+        }
+      },
+      {
+        regex: /# *End/,
+        action: {
+          token: 'macro',
+          bracket: '@close'
         }
       },
       {
@@ -443,9 +458,9 @@ const LangDef = {
         }
       },
       {
-        regex: /# *End/,
+        regex: /#/,
         action: {
-          token: 'macro',
+          token: '@rematch',
           bracket: '@close',
           next: '@pop'
         }
@@ -488,21 +503,32 @@ const LangDef = {
         }
       },
       {
+        regex: /#/,
+        action: {
+          token: '@rematch',
+          bracket: '@close',
+          next: '@pop'
+        }
+      },
+      {
         regex: /<\*[A-Za-z\d]+\*>/,
         action: {
           token: 'macroIndicator'
         }
       },
       {
-        regex: /# *End/,
-        action: {
-          token: 'macro',
-          bracket: '@close',
-          next: '@pop'
-        }
-      },
-      {
         include: 'Common'
+      }
+    ],
+    Function: [
+      {
+        regex: /#/,
+        action: {
+          token: '@rematch',
+          bracket: '@close',
+          next: '@pop',
+          nextEmbedded: '@pop'
+        }
       }
     ],
     Inc: [
@@ -523,7 +549,7 @@ const LangDef = {
     Section: [],
     Track: []
   },
-  tokenPostfix: '.sml',
+  tokenPostfix: '.tm',
   defaultToken: 'undef'
 }
 

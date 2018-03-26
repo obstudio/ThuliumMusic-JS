@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 import { SubtrackParser } from './TrackParser'
+import { parse } from 'acorn'
 
 export default class LibLoader {
   /**
@@ -59,10 +60,12 @@ export default class LibLoader {
   }
 
   loadCode(data) {
-    const code = 'this.result.FunctionPackage.Custom = {' + data.map((func) => func.Code).join(',') + '}'
+    const result = parse(data)
+    if (!result.body.every((stmt) => stmt.type === 'FunctionDeclaration')) return
+    const code = data + '\nreturn {' + result.body.map((stmt) => stmt.id.name).join(',') + '}'
     try {
-      /* eslint-disable-next-line no-eval */
-      eval(code) // FIXME: change to other methods
+      /* eslint-disable-next-line no-new-func */
+      return new Function(code)() // FIXME: change to other methods
     } catch (e) {
       console.log('Script grammar error')
     }
@@ -134,10 +137,10 @@ LibLoader.Default = {
         }
       }))
     },
-    locateFunction (name) {
+    locateFunction(name) {
       if (name in this.STD) return this.STD[name]
       if (name in this.Custom) return this.Custom[name]
-      return () => {}
+      return () => { }
     }
   },
   MIDIEventList: {},

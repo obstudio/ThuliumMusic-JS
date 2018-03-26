@@ -910,7 +910,7 @@ const libDef = [
     transform(funcs) {
       return {
         Type: 'Function',
-        Data: []
+        Data: funcs[1]
       }
     }
   },
@@ -1212,13 +1212,13 @@ export default class Tokenizer {
         })
         return ''
       })
-      const end = this.content.match(/^#\s*End/m)
+      const end = this.content.match(/^#\s*End\n/m)
       if (end !== null) {
         const libLen = end.index + end[0].length
         this.baseIndex += libLen
         const libstr = this.content.slice(0, libLen)
         this.result.Library.push(...new LibTokenizer(libstr).tokenize())
-        this.content = this.content.slice(end.index + end[0].length)
+        this.content = this.content.slice(libLen)
       }
     }
   }
