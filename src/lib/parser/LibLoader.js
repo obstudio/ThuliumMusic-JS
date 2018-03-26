@@ -65,7 +65,7 @@ export default class LibLoader {
     const code = data + '\nreturn {' + result.body.map((stmt) => stmt.id.name).join(',') + '}'
     try {
       /* eslint-disable-next-line no-new-func */
-      return new Function(code)() // FIXME: change to other methods
+      Object.assign(this.result.FunctionPackage.Custom, new Function(code)()) // FIXME: change to other methods
     } catch (e) {
       console.log('Script grammar error')
     }
