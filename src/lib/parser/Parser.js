@@ -142,7 +142,7 @@ export default class Parser {
       case 'Fine':
         return
       case 'Section':
-      case 'FUNCTION':
+      case 'Function':
         this.tokenizedData.Sections.push(element)
         break
       }
@@ -156,7 +156,7 @@ export default class Parser {
    */
   parseSection(section) {
     const settings = this.sectionContext.Settings.extend()
-    section.Settings.filter((token) => token.Type === 'FUNCTION')
+    section.Settings.filter((token) => token.Type === 'Function')
       .forEach((token) => this.libraries.FunctionPackage.applyFunction({ Settings: settings, Context: {} }, token))
     const instrStatistic = {}
     const sec = {

@@ -13,7 +13,7 @@ const sDef = [
     ],
     transform(match) {
       return {
-        Type: 'FUNCTION',
+        Type: 'Function',
         Name: 'Tremolo1',
         Simplified: true,
         Argument: [
@@ -43,7 +43,7 @@ const sDef = [
     ],
     transform(match) {
       return {
-        Type: 'FUNCTION',
+        Type: 'Function',
         Name: 'Tremolo2',
         Simplified: true,
         Argument: [
@@ -72,7 +72,7 @@ const sDef = [
     ],
     transform(match) {
       return {
-        Type: 'FUNCTION',
+        Type: 'Function',
         Name: 'Portamento',
         Simplified: true,
         Argument: [
@@ -94,7 +94,7 @@ const sDef = [
     ],
     transform(match) {
       return {
-        Type: 'FUNCTION',
+        Type: 'Function',
         Name: 'Arpeggio',
         Simplified: true,
         Argument: [
@@ -116,12 +116,12 @@ const sDef = [
         ]
       },
       {
-        Type: ['Note', 'FUNCTION']
+        Type: ['Note', 'Function']
       }
     ],
     transform(match) {
       return {
-        Type: 'FUNCTION',
+        Type: 'Function',
         Name: 'Fermata',
         Simplified: true,
         Argument: [
@@ -148,7 +148,7 @@ const sDef = [
     ],
     transform(match) {
       return {
-        Type: 'FUNCTION',
+        Type: 'Function',
         Name: 'Tuplet',
         Simplified: true,
         Argument: [
@@ -175,7 +175,7 @@ const sDef = [
     ],
     transform(match) {
       return {
-        Type: 'FUNCTION',
+        Type: 'Function',
         Name: 'GraceNote',
         Simplified: true,
         Argument: [
@@ -207,7 +207,7 @@ const sDef = [
     ],
     transform(match) {
       return {
-        Type: 'FUNCTION',
+        Type: 'Function',
         Name: 'Appoggiatura',
         Simplified: true,
         Argument: [
@@ -423,7 +423,7 @@ const langDef = {
         token: 'sfunc',
         transform(match) {
           return {
-            Type: 'FUNCTION',
+            Type: 'Function',
             Name: match[1],
             Argument: [
               {
@@ -441,7 +441,7 @@ const langDef = {
         token: 'sfunc',
         transform(match) {
           return {
-            Type: 'FUNCTION',
+            Type: 'Function',
             Name: 'BarBeat',
             Argument: [
               {
@@ -463,7 +463,7 @@ const langDef = {
         token: 'sfunc',
         transform(match) {
           return {
-            Type: 'FUNCTION',
+            Type: 'Function',
             Name: 'Key',
             Argument: [
               {
@@ -481,7 +481,7 @@ const langDef = {
         token: 'sfunc',
         transform(match) {
           return {
-            Type: 'FUNCTION',
+            Type: 'Function',
             Name: 'Vol',
             Argument: [
               {
@@ -499,7 +499,7 @@ const langDef = {
         token: 'sfunc',
         transform(match) {
           return {
-            Type: 'FUNCTION',
+            Type: 'Function',
             Name: 'Spd',
             Argument: [
               {
@@ -517,7 +517,7 @@ const langDef = {
         token: 'sfunc',
         transform(match) {
           return {
-            Type: 'FUNCTION',
+            Type: 'Function',
             Name: 'KeyShift',
             Argument: [
               {
@@ -620,7 +620,7 @@ const langDef = {
         next: 'Func',
         transform(func, content) {
           return {
-            Type: 'FUNCTION',
+            Type: 'Function',
             Name: func[1],
             Argument: content
           }
@@ -1070,7 +1070,7 @@ export default class Tokenizer {
     const heads = ['Volta', 'RepeatBegin', 'RepeatEnd', 'Setting', 'Coda', 'Segno', 'DaCapo', 'DaSegno', 'Fine']
     const settings = ['ConOct', 'Vol', 'Spd', 'Key', 'Oct', 'KeyOct', 'Beat', 'Bar', 'BarBeat', 'Dur', 'Acct', 'Light', 'Seg', 'Port', 'Trace', 'FadeIn', 'FadeOut', 'Rev', 'Ferm', 'Stac']
     return track.every((element) => {
-      return heads.includes(element.Type) || (element.Type === 'FUNCTION' && settings.includes(element.Name))
+      return heads.includes(element.Type) || (element.Type === 'Function' && settings.includes(element.Name))
     })
   }
 
