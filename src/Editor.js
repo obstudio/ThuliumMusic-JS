@@ -511,7 +511,7 @@ const LangDef = {
         }
       },
       {
-        regex: /<\*[A-Za-z\d]+\*>/,
+        regex: /<:[A-Za-z\d]+:>/,
         action: {
           token: 'macroIndicator'
         }
@@ -610,7 +610,7 @@ export function defineLanguage() {
           match.range.endColumn >= position.column
       )
       if (!trueMatch) return
-      const def = model.findMatches(`<*${trueMatch.matches[0].slice(1)}*>`, false, false, true, '', false)[0]
+      const def = model.findMatches(`<:${trueMatch.matches[0].slice(1)}:>`, false, false, true, '', false)[0]
       return {
         uri: model.uri,
         range: def.range

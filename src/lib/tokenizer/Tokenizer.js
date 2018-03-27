@@ -543,6 +543,18 @@ const langDef = {
       }
     },
     {
+      regex: /^<\*([^]*?)\*>/,
+      action: {
+        token: 'comment',
+        transform(content) {
+          return {
+            Type: 'Comment',
+            Content: content[1]
+          }
+        }
+      }
+    },
+    {
       regex: /^\[(\d+\.)+\]/,
       action: {
         token: 'volta',
@@ -919,9 +931,9 @@ const libDef = [
     type: 'Macro',
     transform(macroAll) {
       const result = []
-      const macros = macroAll[0].match(/<\*\w+\*>[^]+?(?=<\*(\w+)\*>|$)/g)
+      const macros = macroAll[0].match(/<:\w+:>[^]+?(?=<:(\w+):>|$)/g)
       for (const macro of macros) {
-        const [, name, content] = macro.match(/<\*(\w+)\*>([^]+)/)
+        const [, name, content] = macro.match(/<:(\w+):>([^]+)/)
         result.push({
           Name: name,
           Content: Tokenizer.tokenizeTrack(content)
