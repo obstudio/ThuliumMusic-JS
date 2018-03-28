@@ -67,6 +67,20 @@ export class TrackParser {
       pitchQueue: [],
       warnings: []
     }
+    this.Meta = {
+      afterTie: false,
+      notesBeforeTie: [],
+      pitchQueue: [],
+      pitchFirst: 第一个音符,
+      pitchLast: 最后一个音符,
+      fadeIn: 淡入位置和秒数,
+      fadeOut: 淡出位置和秒数,
+      barFirst: 第一个小节不完全的拍数,
+      barLast: 最后一个小节不完全的拍数,
+      barCount: 总小节线数,
+      tieLeft: false,
+      tieRight: false
+    }
   }
 
   pushError(errorType, args, useLocator = true) {
@@ -167,7 +181,6 @@ export class TrackParser {
     let rightIncomplete
     let leftIncomplete = 0
     let leftFirst = true
-
     for (const token of this.Content) {
       this.Context.locator.index += 1
       switch (token.Type) {

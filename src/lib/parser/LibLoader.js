@@ -121,9 +121,11 @@ LibLoader.Default = {
     Custom: {},
     applyFunction(parser, token) {
       return this.locateFunction(token.Name).apply({
+        ParseTrack (track, protocol, settings = parser.Settings) {
+          return new SubtrackParser(track, settings, parser.Libraries).parseTrack()
+        },
         Settings: parser.Settings,
-        Libraries: parser.Libraries,
-        pitchQueue: parser.Context.pitchQueue
+        Meta: parser.Meta
       }, token.Argument.map((arg) => {
         switch (arg.Type) {
         case 'Number':
