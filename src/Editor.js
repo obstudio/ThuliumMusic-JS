@@ -598,6 +598,7 @@ export function defineLanguage() {
     rules: ColorRules,
     colors: {}
   })
+  window.monaco.editor.setTheme('tm')
   window.monaco.languages.setMonarchTokensProvider('tm', LangDef)
   window.monaco.languages.registerDefinitionProvider('tm', {
     provideDefinition(model, position, token) {

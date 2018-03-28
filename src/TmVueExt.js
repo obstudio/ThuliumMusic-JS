@@ -1,9 +1,22 @@
 import Player from './lib/player'
-const Markdown = require('markdown-it')
+import { defineLanguage } from './Editor'
+
+const Markdown = require('marked')
 
 export default (Vue) => {
   Vue.prototype.$createPlayer = (v) => new Player(v)
-  const md = new Markdown({})
+  const md = Markdown.setOptions({
+    highlight (code, lang, cb) {
+      if ('monaco' in window) {
+        window.monaco.editor.colorize(code, lang).then((res) => cb(null, `<div class=tm>${res}</div>`))
+      } else {
+        window.require(['vs/editor/editor.main'], () => {
+          defineLanguage()
+          window.monaco.editor.colorize(code, lang).then((res) => cb(null, `<div class=tm>${res}</div>`))
+        })
+      }
+    }
+  })
   // md.inline.ruler.push('gray', (state, silent) => {
   //   var i, scanned, token,
   //     start = state.pos,
@@ -58,78 +71,78 @@ export default (Vue) => {
   //   state.pos += scanned.length
   //   return true
   // })
-  md.block.ruler.before('table', 'usage', (state, startLine, endLine, silent) => {
-    /* eslint-disable-next-line one-var */
-    var ch, token, level,
-      pos = state.bMarks[startLine] + state.tShift[startLine],
-      max = state.eMarks[startLine]
-    // if it's indented more than 3 spaces, it should be a code block
-    if (state.sCount[startLine] - state.blkIndent >= 4) { return false }
-    ch = state.src.charCodeAt(pos)
-    if ((ch !== 63 && ch !== 45) || pos >= max) { return false }
-    if (ch === 45) {
-      ch = state.src.charCodeAt(++pos)
-      if (ch !== 63) return false
-      level = 3
-    } else {
-      level = 2
-    }
-    if (silent) { return true }
+  // md.block.ruler.before('table', 'usage', (state, startLine, endLine, silent) => {
+  //   /* eslint-disable-next-line one-var */
+  //   var ch, token, level,
+  //     pos = state.bMarks[startLine] + state.tShift[startLine],
+  //     max = state.eMarks[startLine]
+  //   // if it's indented more than 3 spaces, it should be a code block
+  //   if (state.sCount[startLine] - state.blkIndent >= 4) { return false }
+  //   ch = state.src.charCodeAt(pos)
+  //   if ((ch !== 63 && ch !== 45) || pos >= max) { return false }
+  //   if (ch === 45) {
+  //     ch = state.src.charCodeAt(++pos)
+  //     if (ch !== 63) return false
+  //     level = 3
+  //   } else {
+  //     level = 2
+  //   }
+  //   if (silent) { return true }
 
-    pos += 1
-    state.line = startLine + 1
+  //   pos += 1
+  //   state.line = startLine + 1
 
-    token = state.push('usage_open', 'h' + level, 1)
-    token.markup = '?'
-    token.map = [ startLine, state.line ]
+  //   token = state.push('usage_open', 'h' + level, 1)
+  //   token.markup = '?'
+  //   token.map = [ startLine, state.line ]
 
-    token = state.push('inline', '', 0)
-    token.content = state.src.slice(pos, max).trim()
-    token.map = [ startLine, state.line ]
-    token.children = []
+  //   token = state.push('inline', '', 0)
+  //   token.content = state.src.slice(pos, max).trim()
+  //   token.map = [ startLine, state.line ]
+  //   token.children = []
 
-    token = state.push('heading_close', 'h' + level, -1)
-    token.markup = '?'
+  //   token = state.push('heading_close', 'h' + level, -1)
+  //   token.markup = '?'
 
-    return true
-  })
-  md.block.ruler.before('table', 'wrap', (state, startLine, endLine, silent) => {
-    /* eslint-disable-next-line one-var */
-    var ch, token,
-      pos = state.bMarks[startLine] + state.tShift[startLine],
-      max = state.eMarks[startLine]
+  //   return true
+  // })
+  // md.block.ruler.before('table', 'wrap', (state, startLine, endLine, silent) => {
+  //   /* eslint-disable-next-line one-var */
+  //   var ch, token,
+  //     pos = state.bMarks[startLine] + state.tShift[startLine],
+  //     max = state.eMarks[startLine]
 
-    // if it's indented more than 3 spaces, it should be a code block
-    if (state.sCount[startLine] - state.blkIndent >= 4) { return false }
+  //   // if it's indented more than 3 spaces, it should be a code block
+  //   if (state.sCount[startLine] - state.blkIndent >= 4) { return false }
 
-    ch = state.src.charCodeAt(pos)
+  //   ch = state.src.charCodeAt(pos)
 
-    if (ch !== 94 || pos >= max) { return false }
+  //   if (ch !== 94 || pos >= max) { return false }
 
-    ch = state.src.charCodeAt(++pos)
-    if (ch !== 94) {
-      pos--
-    }
+  //   ch = state.src.charCodeAt(++pos)
+  //   if (ch !== 94) {
+  //     pos--
+  //   }
 
-    if (silent) { return true }
+  //   if (silent) { return true }
 
-    pos += 1
-    state.line = startLine + 1
+  //   pos += 1
+  //   state.line = startLine + 1
 
-    token = state.push('usage_open', 'a', 1)
-    token.attrSet('href', '#')
-    token.markup = '^'
-    token.map = [ startLine, state.line ]
+  //   token = state.push('usage_open', 'a', 1)
+  //   token.attrSet('href', '#')
+  //   token.markup = '^'
+  //   token.map = [ startLine, state.line ]
 
-    token = state.push('inline', '', 0)
-    token.content = state.src.slice(pos, max).trim()
-    token.map = [ startLine, state.line ]
-    token.children = []
+  //   token = state.push('inline', '', 0)
+  //   token.content = state.src.slice(pos, max).trim()
+  //   token.map = [ startLine, state.line ]
+  //   token.children = []
 
-    token = state.push('heading_close', 'a', -1)
-    token.markup = '^'
+  //   token = state.push('heading_close', 'a', -1)
+  //   token.markup = '^'
 
-    return true
-  })
+  //   return true
+  // })
   Vue.prototype.$md = md
 }

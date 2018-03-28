@@ -4,7 +4,6 @@
 </template>
 
 <script>
-import { defineLanguage } from '@/Editor'
 export default {
   name: 'TmDocContainer',
   data() {
@@ -13,14 +12,20 @@ export default {
     }
   },
   methods: {
-    async render(name) {
+    async fetchDoc(name) {
       const doc = await fetch(`/static/doc/${name}.tmd`)
       const text = await doc.text()
-      return this.$md.render(text)
+      return text
     },
     setContent() {
-      this.render(this.doc).then(ret => {
-        this.content = ret
+      this.fetchDoc(this.doc).then(ret => {
+        this.$md.parse(ret, (err, res) => {
+          if (err) {
+            return
+          }
+          this.content = res
+        })
+        /* this.content = ret
         this.$nextTick(() => {
           new Promise((resolve, reject) => {
             window.require(['vs/editor/editor.main'], () => {
@@ -34,7 +39,7 @@ export default {
               window.monaco.editor.colorizeElement(el, { theme: 'tm' })
             })
           })
-        })
+        }) */
       })
     }
   },
