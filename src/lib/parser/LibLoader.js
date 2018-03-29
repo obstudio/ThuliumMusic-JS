@@ -1,12 +1,11 @@
-// eslint-disable-next-line no-unused-vars
 import { SubtrackParser } from './TrackParser'
 import { parse } from 'acorn'
 
 export default class LibLoader {
   /**
-     *
-     * @param {Tm.Library[]} libs
-     */
+   *
+   * @param {Tm.Library[]} libs
+   */
   constructor(libs = [], withDefault = true) {
     this.libs = libs
 
@@ -122,7 +121,7 @@ LibLoader.Default = {
     applyFunction(parser, token) {
       return this.locateFunction(token.Name).apply({
         ParseTrack (track, protocol, settings = parser.Settings) {
-          return new SubtrackParser(track, settings, parser.Libraries).parseTrack()
+          return new SubtrackParser(track, settings, parser.Libraries, parser.Meta).parseTrack()
         },
         Settings: parser.Settings,
         Meta: parser.Meta

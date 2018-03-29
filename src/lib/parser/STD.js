@@ -1,8 +1,8 @@
-import { SubtrackParser } from './TrackParser'
-
+/* eslint-disable spaced-comment */
 export default {
   Tremolo1(expr, subtrack) {
-    const t = new SubtrackParser(subtrack, this.Settings, this.Libraries, this.pitchQueue).parseTrack()
+    /**** (^%1-)&2 ****/
+    const t = this.ParseTrack(subtrack, null)
     const pow = Math.pow(2, -(expr)) * 60 / this.Settings.Speed
     const num = Math.round(t.Meta.Duration / pow)
     const result = []
@@ -13,15 +13,13 @@ export default {
         result.push(Object.assign({}, t.Content[j], { StartTime: startTime, Duration: pow }))
       }
     }
-
-    return {
-      Content: result,
-      Meta: t.Meta
-    }
+    t.Content = result
+    return t
   },
 
   Tremolo2(expr, subtrack1, subtrack2) {
-    const ts = [new SubtrackParser(subtrack1, this.Settings, this.Libraries, this.pitchQueue).parseTrack(), new SubtrackParser(subtrack2, this.Settings, this.Libraries, this.pitchQueue).parseTrack()]
+    /**** &2(^%1=)&3 ****/
+    const ts = [this.ParseTrack(subtrack1, null), this.ParseTrack(subtrack2, null)]
     const pow = Math.pow(2, -(expr)) * 60 / this.Settings.Speed
     const num = Math.round(ts[1].Meta.Duration / pow)
     const lengths = ts.map((t) => t.Content.length)
@@ -53,11 +51,11 @@ export default {
     }
     return {
       Content: result,
+      Warnings: [],
       Meta: {
         Duration: ts[1].Meta.Duration,
         Incomplete: incomplete,
         Single: single,
-        Warnings: [],
         PitchQueue: [...ts[0].Meta.PitchQueue, ...ts[1].Meta.PitchQueue],
         NotesBeforeTie: ts[(num - 1) % 2].Meta.NotesBeforeTie
       }
@@ -65,8 +63,9 @@ export default {
   },
 
   Tuplet(expr, subtrack) {
+    /**** (^!1~)&2 ****/
     const scale = Math.pow(2, Math.floor(Math.log2(expr))) / expr
-    const t = new SubtrackParser(subtrack, this.Settings.extend({ Bar: this.Settings.Bar / scale }), this.Libraries, this.pitchQueue).parseTrack()
+    const t = this.ParseTrack(subtrack, null, this.Settings.extend({ Bar: this.Settings.Bar / scale }))
     t.Content.forEach((note) => {
       note.__oriDur *= scale
       note.Duration *= scale
@@ -83,8 +82,9 @@ export default {
   },
 
   Portamento(subtrack1, subtrack2) {
-    const t1 = new SubtrackParser(subtrack1, this.Settings, this.Libraries, this.pitchQueue).parseTrack()
-    const t2 = new SubtrackParser(subtrack2, this.Settings, this.Libraries, this.pitchQueue).parseTrack()
+    /**** &1~&2 ****/
+    const t1 = this.ParseTrack(subtrack1, null)
+    const t2 = this.ParseTrack(subtrack2, null)
 
     const pitch1 = t1.Content[0].Pitch
     const pitch2 = t2.Content[0].Pitch
@@ -127,11 +127,11 @@ export default {
 
     return {
       Content: result,
+      Warnings: [],
       Meta: {
         Duration: duration,
         Incomplete: incomplete,
         Single: single,
-        Warnings: [],
         PitchQueue: [...t1.Meta.PitchQueue, ...t2.Meta.PitchQueue],
         NotesBeforeTie: [result[result.length - 1]]
       }
@@ -139,8 +139,9 @@ export default {
   },
 
   GraceNote(subtrack1, subtrack2) {
-    const t1 = new SubtrackParser(subtrack1, this.Settings, this.Libraries, this.pitchQueue).parseTrack()
-    const t2 = new SubtrackParser(subtrack2, this.Settings, this.Libraries, this.pitchQueue).parseTrack()
+    /**** (^&1\^)&2 ****/
+    const t1 = this.ParseTrack(subtrack1, null)
+    const t2 = this.ParseTrack(subtrack2, null)
     const num = subtrack1.Content.length
     let dur
     const appo = this.Settings.getOrSetDefault('Seg', 1 / 4)
@@ -163,13 +164,15 @@ export default {
     })
     return {
       Content: [...t1.Content, ...t2.Content],
+      Warnings: [],
       Meta: t2.Meta
     }
   },
 
   Appoggiatura(subtrack1, subtrack2) {
-    const t1 = new SubtrackParser(subtrack1, this.Settings, this.Libraries, this.pitchQueue).parseTrack()
-    const t2 = new SubtrackParser(subtrack2, this.Settings, this.Libraries, this.pitchQueue).parseTrack()
+    /**** &1(\^^&2) ****/
+    const t1 = this.ParseTrack(subtrack1, null)
+    const t2 = this.ParseTrack(subtrack2, null)
     const num = subtrack2.Content.length
     let dur
     const appo = this.Settings.getOrSetDefault('Seg', 1 / 4)
@@ -193,12 +196,14 @@ export default {
     t1.Meta.NotesBeforeTie = t2.Meta.NotesBeforeTie
     return {
       Content: [...t1.Content, ...t2.Content],
+      Warnings: [],
       Meta: t1.Meta
     }
   },
 
   Fermata(subtrack) {
-    const t = new SubtrackParser(subtrack, this.Settings, this.Libraries, this.pitchQueue).parseTrack()
+    /**** (.)&1 ****/
+    const t = this.ParseTrack(subtrack, null)
     const ferm = this.Settings.getOrSetDefault('Ferm', 2)
     t.Content.forEach((note) => {
       note.Duration *= ferm
@@ -210,7 +215,8 @@ export default {
   },
 
   Arpeggio(subtrack) {
-    const t = new SubtrackParser(subtrack, this.Settings, this.Libraries, this.pitchQueue).parseTrack()
+    /**** \$&1 ****/
+    const t = this.ParseTrack(subtrack, null)
     const num = t.Content.length - 1
     let dur
     const appo = this.Settings.getOrSetDefault('Seg', 1 / 4)
@@ -242,7 +248,6 @@ export default {
     }, [])
     return Object.assign(t, { Content: result })
   },
-
   Con(octave, scale = 1) {
     if (octave === 0) {
       this.Settings.Key = [this.Settings.Key[0]]
@@ -255,6 +260,7 @@ export default {
     // this.Settings.assignSetting('ConOctVolume', volumeScale, (volume) => volume >= 0)
   },
   Vol(volume) {
+    /**** (^!1\%) ****/
     if (volume instanceof Array) {
       this.Settings.Volume = volume
     } else {
@@ -265,10 +271,8 @@ export default {
     }
     // this.Settings.assignSetting('Volume', volume / 100, (volume) => volume >= 0)
   },
-  Spd(speed) {
-    this.Settings.assignSetting('Speed', speed, (speed) => speed > 0)
-  },
   Key(key) {
+    /**** (1=$1) ****/
     let delta
     if (typeof key === 'string') {
       const match = arguments[0].match(/^((#|b)\2*)?([A-G])(('|,)\5*)?/)
@@ -292,6 +296,7 @@ export default {
     // this.Settings.assignSetting('Key', key, (key) => Number.isInteger(key))
   },
   KeyShift(delta) {
+    /**** (!1) ****/
     for (var i = 0, length = this.Settings.Key.length; i < length; i++) {
       this.Settings.Key[i] += delta
     }
@@ -309,7 +314,12 @@ export default {
       if (arguments.length >= 2) this.Settings.Volume = arguments[1]
     }
   },
+  Spd(speed) {
+    /**** (^!1) ****/
+    this.Settings.assignSetting('Speed', speed, (speed) => speed > 0)
+  },
   BarBeat(bar, beat) {
+    /**** (^!1/^!2) ****/
     this.Settings.assignSetting('Bar', bar, (bar) => bar > 0 && Number.isInteger(bar))
     this.Settings.assignSetting('Beat', beat, (beat) => beat > 0 && Number.isInteger(Math.log2(beat)))
   },
@@ -343,10 +353,7 @@ export default {
   Ferm(ferm) {
     this.Settings.assignSetting('Ferm', ferm, (ferm) => ferm > 1)
   },
-  Stac(restProportion, index = 1) {
-    if (typeof restProportion !== 'number') throw new TypeError('Non-numeric value passed in as Stac')
-    if (!((restProportion) => restProportion >= 0 && restProportion <= 1)(restProportion)) throw new RangeError('Stac out of range')
-    if (!(index >= 0 && Number.isInteger(index))) throw new RangeError('Stac index out of range')
-    this.Settings.Stac[index] = restProportion
+  Stac(rest, index = 1) {
+    this.Settings.assignSettingAtIndex('Stac', index, rest, (rest) => rest >= 0 && rest <= 1)
   }
 }
