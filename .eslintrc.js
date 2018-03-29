@@ -28,6 +28,8 @@ module.exports = {
     'indent': ['error', 2],
     'space-before-function-paren': 'off',
     'no-unused-vars': ['warn'],
-    'no-eval': ['warn']
+    'no-eval': ['warn'],
+    'one-var': 'off',
+    'no-cond-assign': 'off'
   }
 }

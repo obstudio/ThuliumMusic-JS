@@ -1,7 +1,7 @@
 import Player from './lib/player'
 import { defineLanguage } from './Editor'
 
-const Markdown = require('marked')
+const Markdown = require('./lib/doc/marked')
 
 export default (Vue) => {
   Vue.prototype.$createPlayer = (v) => new Player(v)
