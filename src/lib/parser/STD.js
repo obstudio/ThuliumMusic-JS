@@ -2,7 +2,7 @@
 export default {
   Tremolo1(expr, subtrack) {
     /**** (^%1-)&2 ****/
-    const t = this.ParseTrack(subtrack, null)
+    const t = this.ParseTrack(subtrack)
     const pow = Math.pow(2, -(expr)) * 60 / this.Settings.Speed
     const num = Math.round(t.Meta.Duration / pow)
     const result = []
@@ -19,7 +19,7 @@ export default {
 
   Tremolo2(expr, subtrack1, subtrack2) {
     /**** &2(^%1=)&3 ****/
-    const ts = [this.ParseTrack(subtrack1, null), this.ParseTrack(subtrack2, null)]
+    const ts = [this.ParseTrack(subtrack1), this.ParseTrack(subtrack2)]
     const pow = Math.pow(2, -(expr)) * 60 / this.Settings.Speed
     const num = Math.round(ts[1].Meta.Duration / pow)
     const lengths = ts.map((t) => t.Content.length)
@@ -65,7 +65,7 @@ export default {
   Tuplet(expr, subtrack) {
     /**** (^!1~)&2 ****/
     const scale = Math.pow(2, Math.floor(Math.log2(expr))) / expr
-    const t = this.ParseTrack(subtrack, null, this.Settings.extend({ Bar: this.Settings.Bar / scale }))
+    const t = this.ParseTrack(subtrack, this.Settings.extend({ Bar: this.Settings.Bar / scale }))
     t.Content.forEach((note) => {
       note.__oriDur *= scale
       note.Duration *= scale
@@ -83,8 +83,8 @@ export default {
 
   Portamento(subtrack1, subtrack2) {
     /**** &1~&2 ****/
-    const t1 = this.ParseTrack(subtrack1, null)
-    const t2 = this.ParseTrack(subtrack2, null)
+    const t1 = this.ParseTrack(subtrack1)
+    const t2 = this.ParseTrack(subtrack2)
 
     const pitch1 = t1.Content[0].Pitch
     const pitch2 = t2.Content[0].Pitch
@@ -140,8 +140,8 @@ export default {
 
   GraceNote(subtrack1, subtrack2) {
     /**** (^&1\^)&2 ****/
-    const t1 = this.ParseTrack(subtrack1, null)
-    const t2 = this.ParseTrack(subtrack2, null)
+    const t1 = this.ParseTrack(subtrack1)
+    const t2 = this.ParseTrack(subtrack2)
     const num = subtrack1.Content.length
     let dur
     const appo = this.Settings.getOrSetDefault('Seg', 1 / 4)
@@ -171,8 +171,8 @@ export default {
 
   Appoggiatura(subtrack1, subtrack2) {
     /**** &1(\^^&2) ****/
-    const t1 = this.ParseTrack(subtrack1, null)
-    const t2 = this.ParseTrack(subtrack2, null)
+    const t1 = this.ParseTrack(subtrack1)
+    const t2 = this.ParseTrack(subtrack2)
     const num = subtrack2.Content.length
     let dur
     const appo = this.Settings.getOrSetDefault('Seg', 1 / 4)
@@ -203,7 +203,7 @@ export default {
 
   Fermata(subtrack) {
     /**** (.)&1 ****/
-    const t = this.ParseTrack(subtrack, null)
+    const t = this.ParseTrack(subtrack)
     const ferm = this.Settings.getOrSetDefault('Ferm', 2)
     t.Content.forEach((note) => {
       note.Duration *= ferm
@@ -216,7 +216,7 @@ export default {
 
   Arpeggio(subtrack) {
     /**** \$&1 ****/
-    const t = this.ParseTrack(subtrack, null)
+    const t = this.ParseTrack(subtrack)
     const num = t.Content.length - 1
     let dur
     const appo = this.Settings.getOrSetDefault('Seg', 1 / 4)
