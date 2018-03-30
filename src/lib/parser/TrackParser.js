@@ -168,12 +168,12 @@ export class TrackParser {
   }
 
   parseTrackContent() {
-    let subtrack
     for (const token of this.Content) {
       this.Meta.Index += 1
       switch (token.Type) {
       case 'Function':
-      case 'Subtrack':
+      case 'Subtrack': {
+        let subtrack
         if (token.Type === 'Function') {
           subtrack = this.Libraries.FunctionPackage.applyFunction(this, token)
           if (subtrack === undefined) {
@@ -231,6 +231,7 @@ export class TrackParser {
         }
         this.Result.push(...subtrack.Content)
         break
+      }
       case 'Note': {
         const notes = this.parseNote(token)
         const beat = this.parseBeat(token)
