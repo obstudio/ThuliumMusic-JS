@@ -276,7 +276,7 @@ export class TrackParser {
     const returnObj = {
       Content: this.Result,
       Warnings: this.Warnings,
-      Meta: this.Meta/* {
+      Meta: Object.assign(this.Meta, { PitchQueue: this.isSubtrack ? this.Meta.PitchQueue.slice(this.oriPitchQueueLength) : this.Meta.PitchQueue })/* {
         PitchQueue: this.isSubtrack ? this.Meta.PitchQueue.slice(this.oriPitchQueueLength) : this.Meta.PitchQueue,
         FadeIn: this.Settings.FadeIn,
         FadeOut: this.Settings.FadeOut,
