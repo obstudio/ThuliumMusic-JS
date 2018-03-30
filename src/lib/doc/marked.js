@@ -1176,13 +1176,13 @@ function edit(regex, opt) {
   regex = regex.source
   opt = opt || ''
   return {
-    replace: function(name, val) {
+    replace(name, val) {
       val = val.source || val
       val = val.replace(/(^|[^[])\^/g, '$1')
       regex = regex.replace(name, val)
       return this
     },
-    getRegex: function() {
+    getRegex() {
       return new RegExp(regex, opt)
     }
   }
@@ -1215,28 +1215,15 @@ var originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i
 function noop() {}
 noop.exec = noop
 
-function merge(obj) {
-  var i = 1,
-    target,
-    key
-
-  for (; i < arguments.length; i++) {
-    target = arguments[i]
-    for (key in target) {
-      if (Object.prototype.hasOwnProperty.call(target, key)) {
-        obj[key] = target[key]
-      }
-    }
-  }
-
-  return obj
+function merge(obj, ...r) {
+  return Object.assign(obj, ...r)
 }
 
 /**
  * Marked
  */
 
-function marked(src, opt, callback) {
+export default function marked(src, opt, callback) {
   // throw error in case of non string input
   if (typeof src === 'undefined' || src === null) {
     throw new Error('marked(): input parameter is undefined or null')
@@ -1371,4 +1358,3 @@ marked.lexer = Lexer.lex
 marked.InlineLexer = InlineLexer
 marked.inlineLexer = InlineLexer.output
 marked.parse = marked
-module.exports = marked
