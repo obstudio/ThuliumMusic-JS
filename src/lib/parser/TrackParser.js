@@ -231,15 +231,17 @@ export class TrackParser {
         }
         this.Result.push(...subtrack.Content)
         break
-      case 'Note':
-        this.Meta.NotesBeforeTie = this.parseNote(token)
+      case 'Note': {
+        const notes = this.parseNote(token)
+        const beat = this.parseBeat(token)
         if (this.Meta.BarCount === 0) {
-          this.Meta.BarFirst += this.parseBeat(token)
+          this.Meta.BarFirst += beat
         } else {
-          this.Meta.BarFirst += this.parseBeat(token)
+          this.Meta.BarLast += beat
         }
-        this.Result.push(...this.Meta.NotesBeforeTie.filter((note) => this.Result.indexOf(note) === -1))
+        this.Result.push(...notes.filter((note) => this.Result.indexOf(note) === -1))
         break
+      }
       case 'Tie':
         this.Meta.TieLeft = true
         break
@@ -355,20 +357,20 @@ export class TrackParser {
     }
 
     const result = []
+    const notesBeforeTie = []
     // merge pitches with previous ones if tie exists
     if (this.Meta.TieLeft) {
       this.Meta.TieLeft = false
       this.Meta.NotesBeforeTie.forEach((prevNote) => {
         const index = pitches.indexOf(prevNote.Pitch)
         if (index === -1 || prevNote.Volume !== volumes[index]) return
-        result.push(prevNote)
+        notesBeforeTie.push(prevNote)
         prevNote.__oriDur += actualDuration
         prevNote.Duration = prevNote.__oriDur
         pitches.splice(index, 1)
         volumes.splice(index, 1)
       })
     }
-
     for (var index = 0, length = pitches.length; index < length; index++) {
       result.push({
         Type: 'Note',
@@ -379,6 +381,7 @@ export class TrackParser {
         StartTime: this.Meta.Duration
       })
     }
+    this.Meta.NotesBeforeTie = notesBeforeTie.concat(result)
     this.Meta.Duration += duration
     return result
   }
