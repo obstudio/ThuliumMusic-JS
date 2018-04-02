@@ -38,9 +38,10 @@ export default class GlobalSetting {
     }
   }
 
-  extend(settingObj = { Stac: this.Stac.slice(), Key: this.Key.slice(), Volume: this.Volume.slice() }) {
+  extend(settingObj = {}) {
     const newSetting = new GlobalSetting()
-    Object.assign(newSetting, this, settingObj)
+    const specialSettings = { Stac: this.Stac.slice(), Key: this.Key.slice(), Volume: this.Volume.slice() }
+    Object.assign(newSetting, this, specialSettings, settingObj)
     return newSetting
   }
 
@@ -53,7 +54,7 @@ export default class GlobalSetting {
    * @param {Tm.GlobalSetting} globalSetting
    * @param {string} key
    * @param {number} value
-   * @param {function} criterion
+   * @param {(value: number) => boolean} criterion
    */
   assignSetting(key, value, criterion) {
     if (this[key] instanceof Array) {
