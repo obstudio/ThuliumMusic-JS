@@ -3,6 +3,7 @@ import Tokenizer from './tokenizer/Tokenizer'
 import WafPlayer from './waf/player'
 import Parser from './parser/Parser'
 import MIDIAdapter from './MIDIAdapter'
+import { langDef, libDef, sDef } from './tokenizer/Syntax'
 
 window.fonts = window.fonts || {}
 
@@ -32,7 +33,7 @@ export default class Player {
   constructor(value) {
     // this.value = value
     const result = typeof value === 'string'
-      ? new MIDIAdapter().adapt(new Parser(new Tokenizer(value).tokenize()).parse())
+      ? new MIDIAdapter().adapt(new Parser(new Tokenizer(value, langDef, sDef, libDef).tokenize()).parse())
       : new MIDIAdapter().adapt(new Parser(value).parse())
     this.tracks = result.tracks
     this.time = result.time

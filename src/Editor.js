@@ -78,7 +78,7 @@ const LangDef = {
         }
       },
       {
-        regex: /<[^*]+>/,
+        regex: /<[^:*]+>/,
         action: {
           token: 'instr'
         }
