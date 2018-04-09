@@ -1,172 +1,282 @@
-import { tokenizeTrack } from './util'
-import LibTokenizer from './LibTokenizer'
+const fs = require('fs')
+const LibTokenizer = require('./Library')
+const TrackSyntax = require('./Track')
+const FSM = require('./Context')
 
-export default class Tokenizer {
-  static isHeadTrack(track) {
-    const heads = ['Volta', 'RepeatBegin', 'RepeatEnd', 'Setting', 'Coda', 'Segno', 'DaCapo', 'DaSegno', 'Fine']
-    const settings = ['ConOct', 'Vol', 'Spd', 'Key', 'Oct', 'KeyOct', 'Beat', 'Bar', 'BarBeat', 'Dur', 'Acct', 'Light', 'Seg', 'Port', 'Trace', 'FadeIn', 'FadeOut', 'Rev', 'Ferm', 'Stac']
-    return track.every((element) => {
-      return heads.includes(element.Type) || (element.Type === 'Function' && settings.includes(element.Name))
-    })
+const instrDict = require('../Config/Instrument.json')
+const drumDict = require('../Config/Percussion.json')
+
+const instrList = Object.keys(instrDict)
+const drumList = Object.keys(drumDict)
+
+const packagePath = '../../package/'
+const packageInfo = require(packagePath + 'index.json')
+
+class Tokenizer {
+  static startsTrue(src, ptr, match, blank = true) {
+    return ptr < src.length && (
+      src[ptr].startsWith(match) ||
+      (src[ptr].match(/^\s*$/) && blank)
+    )
   }
 
-  constructor(content, langDef, sDef, libDef) {
-    this.content = content
-    this.include = []
-    this.sections = []
-    this.baseIndex = 0
-    this.sectionIndex = []
-    this.trackIndex = []
-    this.comments = []
-    this.langDef = langDef
-    this.libDef = libDef
-    this.sDef = sDef
-    this.libs = undefined
-    this.result = {
-      Comments: undefined,
-      Library: [],
-      Sections: []
+  static startsFalse(src, ptr, match, blank = false) {
+    return ptr < src.length && !(
+      src[ptr].startsWith(match) ||
+      (src[ptr].match(/^\s*$/) && blank)
+    )
+  }
+
+  constructor(input, spec = 'String') {
+    this.Comment = []
+    this.Library = []
+    this.Warnings = []
+    this.Errors = []
+    this.Settings = []
+
+    this.Dict = [] // Function Attributes
+    this.Alias = [] // Function Aliases
+    this.Chord = [] // Chord Operators
+
+    this.$init = false
+
+    let source
+    if (spec === 'URL') {
+      source = fs.readFileSync(input, 'utf8')
+    } else {
+      source = input
     }
+    this.Source = source.split(/\r?\n/g)
+  }
+
+  initialize() {
+    if (this.$init) return
+
+    let ptr = 0
+    const src = this.Source
+
+    // Comments
+    while (Tokenizer.startsTrue(src, ptr, '//', false)) {
+      this.Comment.push(src[ptr].slice(2))
+      ptr += 1
+    }
+
+    // Libraries
+    while (Tokenizer.startsTrue(src, ptr, '#')) {
+      const origin = src[ptr]
+      const command = origin.match(/[a-zA-Z]+/)
+      ptr += 1
+      if (!command) continue
+      switch (command[0].toLowerCase()) {
+      case 'include':
+        const name = origin.slice(command.index + command[0].length).trim()
+        if (packageInfo.Packages.includes(name)) {
+          this.loadLibrary(name, origin)
+        } else {
+          // custom
+        }
+        break
+
+      case 'chord':
+        const lines = []
+        while (Tokenizer.startsFalse(src, ptr, '#')) {
+          lines.push(src[ptr])
+          ptr += 1
+        }
+        this.mergeLibrary(origin, lines, 'Chord')
+        break
+
+      case 'function':
+        let code = ''
+        while (Tokenizer.startsFalse(src, ptr, '#')) {
+          code += src[ptr] + '\n'
+          ptr += 1
+        }
+        this.mergeLibrary(origin, code, 'Function')
+        break
+
+      case 'end':
+        break
+
+      default:
+        throw new Error()
+      }
+    }
+    this.Score = src.slice(ptr)
+    this.$init = true
   }
 
   tokenize() {
-    this.regularize()
-    this.extractHeader()
-    this.split()
-    for (let i = 0, length = this.sections.length; i < length; i++) {
-      const sec = {
-        Type: 'Section',
-        Comments: this.comments[i],
-        Settings: [],
-        Tracks: []
+    this.initialize()
+    this.loadLibrary(packageInfo.AutoLoad)
+
+    const sections = []
+    const src = this.Score
+    let ptr = 0, blank = 0
+    let tracks = []
+    let comment = []
+
+    while (ptr < src.length) {
+      if (Tokenizer.startsTrue(src, ptr, '//')) {
+        blank += 1
+        if (blank >= 2 && tracks.length !== 0) {
+          sections.push(this.tokenizeSection(tracks, comment))
+          comment = []
+          tracks = []
+        }
+        if (src[ptr].startsWith('//')) {
+          comment.push(src[ptr].slice(2))
+        }
+        ptr += 1
+      } else {
+        let code = src[ptr]
+        ptr += 1
+        while (Tokenizer.startsFalse(src, ptr, '//', true)) {
+          code += '\n' + src[ptr]
+          ptr += 1
+        }
+        blank = 0
+        tracks.push(code)
       }
-      let pointer = 0
-      for (const track of this.sections[i]) {
-        const tra = tokenizeTrack(track, this.langDef, this.sDef)
-        if (tra[0] instanceof Array) {
-          const instr = tra.shift()
-          const ID = instr.shift()
-          sec.Tracks.push({
-            ID,
-            Instruments: instr,
-            Content: tra
+    }
+
+    if (tracks.length !== 0) {
+      sections.push(this.tokenizeSection(tracks, comment))
+    }
+
+    return {
+      Comment: this.Comment,
+      Library: this.Library,
+      Settings: this.Settings,
+      Sections: sections
+    }
+  }
+
+  tokenizeTrack(track) {
+    let name, play = true, inst = [], degrees = ['0', '%']
+    const instrDegrees = ['1', '2', '3', '4', '5', '6', '7']
+    const drumDegrees = ['x']
+    const functions = this.Dict
+    const aliases = this.Alias
+    const chords = this.Chord.map(chord => chord.Notation)
+    const meta = track.match(/^<(?:(:)?([a-zA-Z][a-zA-Z\d]*):)?/)
+
+    if (meta) {
+      play = !meta[1]
+      name = meta[2]
+      const syntax = new TrackSyntax(functions, aliases, chords, degrees)
+      track = track.slice(meta[0].length)
+      const data = syntax.tokenize(track, 'meta')
+      data.Content.forEach(tok => {
+        if (tok.Type !== '@inst') {
+          throw new Error()
+        }
+        if (instrList.includes(tok.name)) {
+          instrDegrees.forEach(deg => {
+            if (!degrees.includes(deg)) degrees.push(deg)
           })
-          pointer += 1
-        } else if (tra[0].Type === 'LocalIndicator') {
-          sec.Settings.push(...tra.slice(1))
-          this.trackIndex[i].splice(pointer, 1)
-        } else if (Tokenizer.isHeadTrack(tra)) {
-          this.result.Sections.push(...tra)
-          this.trackIndex[i].splice(pointer, 1)
+        } else if (drumList.includes(tok.name)) {
+          drumDegrees.forEach(deg => {
+            if (!degrees.includes(deg)) degrees.push(deg)
+          })
         } else {
-          sec.Tracks.push({
-            ID: null,
-            Instruments: [],
-            Content: tra
-          })
-          pointer += 1
+          throw new Error()
         }
-      }
-      if (sec.Settings.length === 0 && sec.Tracks.length === 0) continue
-      this.result.Sections.push(sec)
-    }
-    return this.result
-  }
-
-  regularize() {
-    this.content = this.content.replace(/\r\n/g, '\n')
-  }
-
-  split() {
-    const pattern = /(^(\/\/.*)?\n){2,}/mg
-    let match
-    let lastIndex = 0
-    const secs = []
-    while ((match = pattern.exec(this.content)) !== null) {
-      if (match.index === 0) {
-        continue
-      } else {
-        const tempSec = this.content.slice(lastIndex, match.index)
-        if (tempSec.trim() !== '') {
-          secs.push(tempSec)
-          this.sectionIndex.push(lastIndex)
-        }
-        lastIndex = match.index
-      }
-    }
-    const tempSec = this.content.slice(lastIndex)
-    if (tempSec.trim() !== '') {
-      secs.push(tempSec)
-      this.sectionIndex.push(lastIndex)
-    }
-    for (let i = 0, length = secs.length; i < length; i++) {
-      let baseIndex = 0
-      const comments = []
-      const tras = secs[i].replace(/^\/\/(.*)/gm, (str, comment) => {
-        baseIndex += str.length
-        comments.push(comment)
-        return ''
+        inst.push({ Name: tok.name, Spec: tok.spec })
       })
-      const temp = this.splitSection(tras, baseIndex)
-      this.comments.push(comments)
-      this.sections.push(temp.tracks)
-      this.trackIndex.push(temp.trackIndex)
+      track = track.slice(data.Index)
+    }
+
+    if (degrees.length === 2) {
+      degrees = ['1', '2', '3', '4', '5', '6', '7', '0', '%']
+    }
+    const syntax = new TrackSyntax(functions, aliases, chords, degrees)
+    const result = syntax.tokenize(track, 'default')
+
+    return {
+      Play: play,
+      Name: name,
+      Instruments: inst,
+      Content: result.Content
     }
   }
 
-  splitSection(content, baseIndex) {
-    const pattern = /(^\n)+/mg
-    let match
-    let lastIndex = 0
-    const tracks = []
-    const trackIndex = []
-    while ((match = pattern.exec(content)) !== null) {
-      if (match.index === 0) {
-        continue
-      } else {
-        const tempTrack = content.slice(lastIndex, match.index)
-        if (tempTrack.trim() !== '') {
-          tracks.push(tempTrack)
-          trackIndex.push(lastIndex + baseIndex)
+  tokenizeSection(tracklist, comment) {
+    const result = tracklist.map(track => this.tokenizeTrack(track))
+    const prolog = [], epilog = [], settings = [], tracks = []
+
+    result.forEach((track, index) => {
+      const content = track.Content
+      if (content.every(tok => !FSM.isSubtrack(tok))) {
+        let sep = content.findIndex(tok => tok.Type === 'LocalIndicator')
+        if (index === 0 || index === result.length - 1) {
+          if (sep === -1) sep = content.length
+          if (index === 0) {
+            prolog.push(...content.slice(0, sep))
+          } else {
+            epilog.push(...content.slice(0, sep))
+          }
+        } else {
+          sep = 0
         }
-        lastIndex = match.index
+        settings.push({
+          Index: index,
+          Spec: content.slice(sep)
+        })
+      } else {
+        tracks.push(track)
       }
+    })
+
+    return {
+      Prolog: prolog,
+      Comment: comment,
+      Settings: settings,
+      Tracks: tracks,
+      Epilog: epilog
     }
-    const tempTrack = content.slice(lastIndex)
-    if (tempTrack.trim() !== '') {
-      tracks.push(tempTrack)
-      trackIndex.push(lastIndex + baseIndex)
+  }
+
+  getLibrary() {
+    this.initialize()
+    if (this.Errors.length > 0) {
+      throw JSON.stringify(this.Errors)
     }
     return {
-      tracks,
-      trackIndex
+      Dict: this.Dict,
+      Chord: this.Chord,
+      Alias: this.Alias
     }
   }
 
-  extractHeader() {
-    this.content = this.content.replace(/^\n*(\/\/.*\n)+\n*/, (str) => {
-      this.baseIndex += str.length
-      this.result.Comments = str.trim().replace(/^\/\//mg, '').split('\n')
-      return ''
+  loadLibrary(name, origin = '#AUTOLOAD') {
+    const path = packagePath + name + '/main.tml'
+    const packageData = new Tokenizer(path, 'URL').getLibrary()
+    this.Dict.push(...packageData.Dict)
+    this.Chord.push(...packageData.Chord)
+    this.Alias.push(...packageData.Alias)
+    this.Library.push({
+      Type: 'Package',
+      Path: name,
+      Head: origin
     })
-    if (this.content.startsWith('#')) {
-      this.content = this.content.replace(/^#\s*Include\s+"([^"\n]+)\n"/gm, (str, name) => {
-        this.baseIndex += str.length
-        this.result.Library.push({
-          Type: 'Package',
-          Path: name,
-          Content: new LibTokenizer(name, false).tokenize()
-        })
-        return ''
-      })
-      const end = this.content.match(/^#\s*End\n/m)
-      if (end !== null) {
-        const libLen = end.index + end[0].length
-        this.baseIndex += libLen
-        const libstr = this.content.slice(0, libLen)
-        this.result.Library.push(...new LibTokenizer(libstr, this.libDef).tokenize())
-        this.content = this.content.slice(libLen)
-      }
-    }
+  }
+
+  mergeLibrary(head, source, type) {
+    const data = LibTokenizer[type + 'Tokenize'](source)
+    Object.assign(this, data.Data)
+    this.Errors.push(...data.Errors)
+    this.Warnings.push(...data.Warnings)
+    this.Library.push({
+      Type: type,
+      Code: source,
+      Head: head
+    })
   }
 }
+
+module.exports = Tokenizer
+
+const test = new Tokenizer('../../Songs/Touhou/test.tm', 'URL')
+
+fs.writeFileSync('../test.output.json', JSON.stringify(test.tokenize(), null, 2))
