@@ -37,8 +37,8 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         { from: /.*/, to: path.posix.join(config.dev.assetsPublicPath, 'index.html') },
       ],
     },
-    //hot: true,
-    contentBase: false, // since we use CopyWebpackPlugin.
+    hot: true,
+    contentBase: 'dist', // since we use CopyWebpackPlugin.
     compress: true,
     host: HOST || config.dev.host,
     port: PORT || config.dev.port,
