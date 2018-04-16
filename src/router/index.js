@@ -23,7 +23,7 @@ export default new Router({
       }
     },
     {
-      path: '/doc/:doc?',
+      path: '/docs/:doc?',
       name: 'TmDocument',
       component: TmDoc
     }
