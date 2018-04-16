@@ -1,4 +1,4 @@
 [submodule "static/docs"]
 	path = static/docs
-	url = git@github.com:obstudio/ThuliumMusic-Docs.git
+url=git@github.com:obstudio/ThuliumMusic-Documents.git
 	branch = master
