@@ -4,7 +4,6 @@ const utils = require('./utils')
 const config = require('../config')
 const vueLoaderConfig = require('./vue-loader.conf')
 const { VueLoaderPlugin } = require('vue-loader')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
@@ -55,13 +54,6 @@ module.exports = {
         include: [resolve('src'), resolve('test'), resolve('node_modules/webpack-dev-server/client')]
       },
       {
-        test: /\.css$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          'css-loader'
-        ]
-      },
-      {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
         loader: 'url-loader',
         options: {
@@ -88,9 +80,6 @@ module.exports = {
     ],
   },
   plugins: [
-    new MiniCssExtractPlugin({
-      filename: 'static/css/output.css'
-    }),
     new VueLoaderPlugin()
   ],
   node: {

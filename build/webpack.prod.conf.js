@@ -9,10 +9,22 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 const env = require('../config/prod.env')
 
 const webpackConfig = merge(baseWebpackConfig, {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader'
+        ]
+      }
+    ]
+  },
   mode: 'production',
   devtool: false,
   output: {
@@ -97,7 +109,10 @@ const webpackConfig = merge(baseWebpackConfig, {
         to: 'vs',
         ignore: ['**/basic-languages/**/*']
       }
-    ])
+    ]),
+    new MiniCssExtractPlugin({
+      filename: 'static/css/output.css'
+    })
   ]
 })
 
