@@ -1,6 +1,6 @@
 [submodule "static/docs"]
 	path = static/docs
-	url = git@github.com:obstudio/ThuliumMusic-Docs.git
+	url = git@github.com:obstudio/ThuliumMusic-Documents.git
 	branch = master
 [submodule "src/lib/parser"]
 	path = src/lib/parser
@@ -9,3 +9,4 @@
 [submodule "src/lib/token"]
 	path = src/lib/token
 	url = git@github.com:obstudio/ThuliumMusic-Tokenizer.git
+
