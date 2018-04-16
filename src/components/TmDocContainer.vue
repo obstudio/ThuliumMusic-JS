@@ -13,7 +13,7 @@ export default {
   },
   methods: {
     async fetchDoc(name) {
-      const doc = await fetch(`/static/doc/${name}.tmd`)
+      const doc = await fetch(`/static/docs/${name}.tmd`)
       const text = await doc.text()
       return text
     },
