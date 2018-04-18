@@ -1,5 +1,5 @@
 // import * as monaco from 'monaco-editor/esm/vs/editor/edcore.main'
-import Tokenizer from './lib/tokenizer/Tokenizer'
+import Tokenizer from './lib/token/Tokenizer'
 import Player from './lib/player'
 
 const ColorRules = [
