@@ -30,6 +30,7 @@ module.exports = {
     'no-unused-vars': ['warn'],
     'no-eval': ['warn'],
     'one-var': 'off',
-    'no-cond-assign': 'off'
+    'no-cond-assign': 'off',
+    'no-useless-escape': 'off'
   }
 }
