@@ -5,7 +5,7 @@ import Tokenizer from './token/Tokenizer'
 import WafPlayer from './waf/player'
 import Parser from './parser/Parser'
 import MIDIAdapter from './MIDIAdapter'
-
+const { library, load } = require('./AsyncProvider')
 window.fonts = window.fonts || {}
 
 function audioLibFile(instr) {
@@ -34,10 +34,7 @@ export default class Player {
   constructor(value) {
     // this.value = value
     const result = typeof value === 'string'
-      ? new MIDIAdapter().adapt(new Parser(new Tokenizer(value, {
-        buffer: false,
-        loader: require('./token/AsyncProvider')
-      }).tokenize()).parse())
+      ? new MIDIAdapter().adapt(new Parser(new Tokenizer(value, load, library).tokenize()).parse())
       : new MIDIAdapter().adapt(new Parser(value).parse())
     this.tracks = result.tracks
     this.time = result.time
