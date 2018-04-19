@@ -1,5 +1,5 @@
 <template>
-  <ol v-if="this.options.ordered">
+  <ol v-if="options.ordered">
     <li v-for="(comp, index) in content" :key="index">
       <component :is="comp.type" :content="comp.content" :options="comp.options"></component>    
     </li>
