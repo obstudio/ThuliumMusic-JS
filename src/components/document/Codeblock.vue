@@ -4,6 +4,7 @@
 
 <script>
 // import base from './index'
+import { defineLanguage } from '@/Editor'
 export default {
   name: 'Codeblock',
   data() {

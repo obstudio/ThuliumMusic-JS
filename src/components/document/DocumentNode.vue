@@ -1,6 +1,6 @@
 <template>
   <div v-if="data.type === 'Document'">
-    <document-node v-for="(comp, index) in data.content" :data="comp" :key="index"></document-node>    
+    <document-node v-for="(comp, index) in data.content" :data="comp" :key="index"></document-node>
   </div>
   <div v-else-if="data.type === 'Alert'">
     <el-alert :type="data.options.type">
@@ -13,14 +13,14 @@
   <div v-else-if="data.type === 'List'">
     <ol v-if="data.options.ordered">
       <li v-for="(comp, index) in data.content" :key="index">
-        <document-node :is="comp.type" :data="comp"></document-node>    
+        <document-node :is="comp.type" :data="comp"></document-node>
       </li>
     </ol>
     <ul v-else>
       <li v-for="(comp, index) in data.content" :key="index">
-        <document-node :is="comp.type" :data="comp"></document-node>    
+        <document-node :is="comp.type" :data="comp"></document-node>
       </li>
-    </ul>  
+    </ul>
   </div>
   <div v-else-if="data.type === 'Split'">
     <hr>
@@ -54,6 +54,7 @@
 </template>
 
 <script>
+import { defineLanguage } from '@/Editor'
 export default {
   name: 'DocumentNode',
   props: ['data'],

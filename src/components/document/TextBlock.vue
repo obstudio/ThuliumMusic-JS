@@ -12,7 +12,7 @@ export default {
   extends: base,
   props: {
     content: {
-      type: String,  // needs detail
+      type: String, // needs detail
       required: true
     },
     options: {

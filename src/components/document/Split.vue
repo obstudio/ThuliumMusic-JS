@@ -14,10 +14,10 @@ export default {
     // },
     options: {
       type: Object,
-      default: {
+      default: () => ({
         dashed: false,
         double: false
-      }
+      })
     }
   }
 }

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <component v-for="(comp, index) in content" :is="comp.type" :content="comp.content" :options="comp.options" :key="index"></component>    
+    <component v-for="(comp, index) in content" :is="comp.type" :content="comp.content" :options="comp.options" :key="index"></component>
   </div>
 </template>
 
