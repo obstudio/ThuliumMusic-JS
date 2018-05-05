@@ -1,9 +1,6 @@
-import {originIndependentUrl, resolveUrl} from './util'
+import {originIndependentUrl, resolveUrl, escape, unescape} from './util'
 
 export class Renderer {
-  /**
-   * Renderer
-   */
   constructor(options) {
     this.options = options
   }

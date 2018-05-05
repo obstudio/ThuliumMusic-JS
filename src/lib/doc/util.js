@@ -2,20 +2,15 @@ export function edit(regex, opt) {
   regex = regex.source || regex
   opt = opt || ''
   return {
-    replace: function (name, val) {
-      val = val.source || val
-      val = val.replace(/(^|[^\[])\^/g, '$1')
-      regex = regex.replace(name, val)
+    replace(name, val) {
+      regex = regex.replace(name, (val.source || val).replace(/(^|[^\[])\^/g, '$1'))
       return this
     },
-    getRegex: function () {
+    getRegex() {
       return new RegExp(regex, opt)
     }
   }
 }
-
-export function noop() {}
-noop.exec = noop
 
 export function merge(obj, ...rest) {
   return Object.assign(obj, ...rest)
@@ -24,6 +19,7 @@ export function merge(obj, ...rest) {
 export const originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i
 
 const baseUrls = {}
+
 export function resolveUrl(base, href) {
   if (!baseUrls[' ' + base]) {
     // we can ignore everything in base after the last slash of its path component,
@@ -47,16 +43,13 @@ export function resolveUrl(base, href) {
 }
 
 export function splitCells(tableRow, count) {
-  var cells = tableRow.replace(/([^\\])\|/g, '$1 |').split(/ +\| */),
-    i = 0
-
+  const cells = tableRow.replace(/([^\\])\|/g, '$1 |').split(/ +\| */)
   if (cells.length > count) {
     cells.splice(count)
   } else {
     while (cells.length < count) cells.push('')
   }
-
-  for (; i < cells.length; i++) {
+  for (let i = 0; i < cells.length; i++) {
     cells[i] = cells[i].replace(/\\\|/g, '|')
   }
   return cells

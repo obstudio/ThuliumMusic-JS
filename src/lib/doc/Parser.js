@@ -1,7 +1,7 @@
 import defaults from './defaults'
 import {Renderer, TextRenderer} from './Renderer'
 import InlineLexer from './InlineLexer'
-import {merge} from './util'
+import {merge, unescape} from './util'
 
 export default class Parser {
   /**

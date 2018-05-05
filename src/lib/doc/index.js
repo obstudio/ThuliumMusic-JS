@@ -1,24 +1,25 @@
 import {merge} from './util'
+import defaults from './defaults'
 import Lexer from './Lexer'
 import Parser from './Parser'
+export {default as InlineLexer} from './InlineLexer'
 
 export function marked(src, opt, callback) {
-  // throw error in case of non string input
-  if (typeof src === 'undefined' || src === null) {
-    throw new Error('marked(): input parameter is undefined or null')
-  }
-  if (typeof src !== 'string') {
-    throw new Error('marked(): input parameter is of type ' +
-      Object.prototype.toString.call(src) + ', string expected')
-  }
-
+  // // throw error in case of non string input
+  // if (typeof src === 'undefined' || src === null) {
+  //   throw new Error('marked(): input parameter is undefined or null')
+  // }
+  // if (typeof src !== 'string') {
+  //   throw new Error('marked(): input parameter is of type ' +
+  //     Object.prototype.toString.call(src) + ', string expected')
+  // }
   if (callback || typeof opt === 'function') {
     if (!callback) {
       callback = opt
       opt = null
     }
 
-    opt = merge({}, marked.defaults, opt || {})
+    opt = merge({}, defaults, opt || {})
 
     var highlight = opt.highlight,
       tokens,
@@ -81,16 +82,6 @@ export function marked(src, opt, callback) {
 
     return
   }
-  try {
-    if (opt) opt = merge({}, marked.defaults, opt)
-    return Parser.parse(Lexer.lex(src, opt), opt)
-  } catch (e) {
-    e.message += '\nPlease report this to https://github.com/markedjs/marked.'
-    if ((opt || marked.defaults).silent) {
-      return '<p>An error occurred:</p><pre>' +
-        escape(e.message + '', true) +
-        '</pre>'
-    }
-    throw e
-  }
+  if (opt) opt = merge({}, marked.defaults, opt)
+  return Parser.parse(Lexer.lex(src, opt), opt)
 }

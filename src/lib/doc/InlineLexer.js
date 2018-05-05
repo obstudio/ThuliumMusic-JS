@@ -1,5 +1,6 @@
 import {inline} from './InlineRules'
 import defaults from './defaults'
+import {escape, originIndependentUrl, resolveUrl, unescape} from './util'
 
 export default class InlineLexer {
   /**
@@ -9,8 +10,6 @@ export default class InlineLexer {
     this.options = options || defaults
     this.links = links
     this.rules = inline.normal
-    this.renderer = this.options.renderer
-    this.renderer.options = this.options
     // if (!this.links) {
     //   throw new Error('Tokens array requires a `links` property.')
     // }
@@ -30,12 +29,7 @@ export default class InlineLexer {
    * Lexing/Compiling
    */
   output(src) {
-    let out = '',
-      link,
-      text,
-      href,
-      title,
-      cap
+    let out = '', link, href, title, cap
 
     while (src) {
       // escape
@@ -97,7 +91,7 @@ export default class InlineLexer {
       // link
       if (cap = this.rules.link.exec(src)) {
         src = src.substring(cap[0].length)
-        this.inLink = true
+        // this.inLink = true
         href = cap[2]
         // if (this.options.pedantic) {
         //   link = /^([^'"]*[^\s])\s+(['"])(.*)\2/.exec(href)
@@ -116,7 +110,7 @@ export default class InlineLexer {
           href: InlineLexer.escapes(href),
           title: InlineLexer.escapes(title)
         })
-        this.inLink = false
+        // this.inLink = false
         continue
       }
 
@@ -131,65 +125,65 @@ export default class InlineLexer {
           src = cap[0].substring(1) + src
           continue
         }
-        this.inLink = true
+        // this.inLink = true
         out += this.outputLink(cap, link)
-        this.inLink = false
+        // this.inLink = false
         continue
       }
 
       // strong
       if (cap = this.rules.strong.exec(src)) {
         src = src.substring(cap[0].length)
-        out += this.renderer.strong(this.output(cap[2] || cap[1]))
+        out += `<strong>${this.output(cap[2] || cap[1])}</strong>`
         continue
       }
 
       // underline
       if (cap = this.rules.underline.exec(src)) {
         src = src.substring(cap[0].length)
-        out += this.renderer.underline(this.output(cap[2] || cap[1]))
+        out += `<u>${this.output(cap[2] || cap[1])}</u>`
         continue
       }
 
       // grey
       if (cap = this.rules.grey.exec(src)) {
         src = src.substring(cap[0].length)
-        out += this.renderer.grey(this.output(cap[2] || cap[1]))
+        out += `<span class="tmd-grey">${this.output(cap[2] || cap[1])}</span>`
         continue
       }
 
       // em
       if (cap = this.rules.em.exec(src)) {
         src = src.substring(cap[0].length)
-        out += this.renderer.em(this.output(cap[3] || cap[2] || cap[1]))
+        out += `<em>${this.output(cap[3] || cap[2] || cap[1])}</em>`
         continue
       }
 
       // code
       if (cap = this.rules.code.exec(src)) {
         src = src.substring(cap[0].length)
-        out += this.renderer.codespan(escape(cap[2].trim(), true))
+        out += `<code>${escape(cap[2].trim(), true)}</code>`
         continue
       }
 
       // br
       if (cap = this.rules.br.exec(src)) {
         src = src.substring(cap[0].length)
-        out += this.renderer.br()
+        out += '<br>'
         continue
       }
 
       // del (gfm)
       if (cap = this.rules.del.exec(src)) {
         src = src.substring(cap[0].length)
-        out += this.renderer.del(this.output(cap[1]))
+        out += `<del>${this.output(cap[1])}</del>`
         continue
       }
 
       // text
       if (cap = this.rules.text.exec(src)) {
         src = src.substring(cap[0].length)
-        out += this.renderer.text(escape(this.smartypants(cap[0])))
+        out += escape(this.smartypants(cap[0]))
         continue
       }
 
@@ -209,8 +203,33 @@ export default class InlineLexer {
       title = link.title ? escape(link.title) : null
 
     return cap[0].charAt(0) !== '!'
-      ? this.renderer.link(href, title, this.output(cap[1]))
-      : this.renderer.image(href, title, escape(cap[1]))
+      ? this.link(href, title, this.output(cap[1]))
+      : this.image(href, title, escape(cap[1]))
+  }
+
+  link(href, title, text) {
+    try {
+      const prot = decodeURIComponent(unescape(href))
+        .replace(/[^\w:]/g, '')
+        .toLowerCase()
+      if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0 || prot.indexOf('data:') === 0) {
+        return text
+      }
+      if (this.options.baseUrl && !originIndependentUrl.test(href)) {
+        href = resolveUrl(this.options.baseUrl, href)
+      }
+      href = encodeURI(href).replace(/%25/g, '%')
+      return `<a href="${escape(href)}" title="${title || ''}">${text}</a>`
+    } catch (e) {
+      return text
+    }
+  }
+
+  image(href, title, text) {
+    if (this.options.baseUrl && !originIndependentUrl.test(href)) {
+      href = resolveUrl(this.options.baseUrl, href)
+    }
+    return `<img src="${href}" alt="${text}" title="${title}">`
   }
 
   /**
@@ -235,27 +254,27 @@ export default class InlineLexer {
       .replace(/\.{3}/g, '\u2026')
   }
 
-  /**
-   * Mangle Links
-   */
-  mangle(text) {
-    return text
-    // if (!this.options.mangle) return text
-    // var out = '',
-    //   l = text.length,
-    //   i = 0,
-    //   ch
-    //
-    // for (; i < l; i++) {
-    //   ch = text.charCodeAt(i)
-    //   if (Math.random() > 0.5) {
-    //     ch = 'x' + ch.toString(16)
-    //   }
-    //   out += `&#${ch};`
-    // }
-    //
-    // return out
-  }
+  // /**
+  //  * Mangle Links
+  //  */
+  // mangle(text) {
+  //   return text
+  //   // if (!this.options.mangle) return text
+  //   // var out = '',
+  //   //   l = text.length,
+  //   //   i = 0,
+  //   //   ch
+  //   //
+  //   // for (; i < l; i++) {
+  //   //   ch = text.charCodeAt(i)
+  //   //   if (Math.random() > 0.5) {
+  //   //     ch = 'x' + ch.toString(16)
+  //   //   }
+  //   //   out += `&#${ch};`
+  //   // }
+  //   //
+  //   // return out
+  // }
 
   /**
    * Static Lexing/Compiling Method
