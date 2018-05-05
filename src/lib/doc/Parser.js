@@ -28,7 +28,7 @@ export default class Parser {
     )
     this.tokens = src.reverse()
 
-    var out = ''
+    let out = ''
     while (this.next()) {
       out += this.tok()
     }
@@ -55,7 +55,7 @@ export default class Parser {
    * Parse Text Tokens
    */
   parseText() {
-    var body = this.token.text
+    let body = this.token.text
 
     while (this.peek().type === 'text') {
       body += '\n' + this.next().text
@@ -68,6 +68,7 @@ export default class Parser {
    * Parse Current Token
    */
   tok() {
+    let body
     switch (this.token.type) {
     case 'space': {
       return ''
@@ -87,13 +88,12 @@ export default class Parser {
         this.token.escaped)
     }
     case 'table': {
-      var header = '',
-        body = '',
+      let header = '',
         i,
         row,
         cell,
         j
-
+      body = ''
       // header
       cell = ''
       for (i = 0; i < this.token.header.length; i++) {
@@ -130,7 +130,7 @@ export default class Parser {
     }
     case 'list_start': {
       body = ''
-      var ordered = this.token.ordered,
+      const ordered = this.token.ordered,
         start = this.token.start
 
       while (this.next().type !== 'list_end') {
@@ -176,7 +176,6 @@ export default class Parser {
    * Static Parse Method
    */
   static parse(src, options) {
-    var parser = new Parser(options)
-    return parser.parse(src)
+    return new Parser(options).parse(src)
   }
 }
