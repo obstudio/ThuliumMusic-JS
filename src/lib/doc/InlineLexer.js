@@ -10,19 +10,6 @@ export default class InlineLexer {
     this.options = options || defaults
     this.links = links
     this.rules = inline.normal
-    // if (!this.links) {
-    //   throw new Error('Tokens array requires a `links` property.')
-    // }
-    //
-    // if (this.options.pedantic) {
-    //   this.rules = inline.pedantic
-    // } else if (this.options.gfm) {
-    //   if (this.options.breaks) {
-    //     this.rules = inline.breaks
-    //   } else {
-    //     this.rules = inline.gfm
-    //   }
-    // }
   }
 
   /**
@@ -39,78 +26,16 @@ export default class InlineLexer {
         continue
       }
 
-      // // autolink
-      // if (cap = this.rules.autolink.exec(src)) {
-      //   src = src.substring(cap[0].length)
-      //   if (cap[2] === '@') {
-      //     text = escape(this.mangle(cap[1]))
-      //     href = 'mailto:' + text
-      //   } else {
-      //     text = escape(cap[1])
-      //     href = text
-      //   }
-      //   out += this.renderer.link(href, null, text)
-      //   continue
-      // }
-
-      // // url (gfm)
-      // if (!this.inLink && (cap = this.rules.url.exec(src))) {
-      //   cap[0] = this.rules._backpedal.exec(cap[0])[0]
-      //   src = src.substring(cap[0].length)
-      //   if (cap[2] === '@') {
-      //     text = escape(cap[0])
-      //     href = 'mailto:' + text
-      //   } else {
-      //     text = escape(cap[0])
-      //     if (cap[1] === 'www.') {
-      //       href = 'http://' + text
-      //     } else {
-      //       href = text
-      //     }
-      //   }
-      //   out += this.renderer.link(href, null, text)
-      //   continue
-      // }
-
-      // // tag
-      // if (cap = this.rules.tag.exec(src)) {
-      //   if (!this.inLink && /^<a /i.test(cap[0])) {
-      //     this.inLink = true
-      //   } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
-      //     this.inLink = false
-      //   }
-      //   src = src.substring(cap[0].length)
-      //   out += this.options.sanitize
-      //     ? this.options.sanitizer
-      //       ? this.options.sanitizer(cap[0])
-      //       : escape(cap[0])
-      //     : cap[0]
-      //   continue
-      // }
-
       // link
       if (cap = this.rules.link.exec(src)) {
         src = src.substring(cap[0].length)
-        // this.inLink = true
         href = cap[2]
-        // if (this.options.pedantic) {
-        //   link = /^([^'"]*[^\s])\s+(['"])(.*)\2/.exec(href)
-        //
-        //   if (link) {
-        //     href = link[1]
-        //     title = link[3]
-        //   } else {
-        //     title = ''
-        //   }
-        // } else {
         title = cap[3] ? cap[3].slice(1, -1) : ''
-        // }
         href = href.trim().replace(/^<([\s\S]*)>$/, '$1')
         out += this.outputLink(cap, {
           href: InlineLexer.escapes(href),
           title: InlineLexer.escapes(title)
         })
-        // this.inLink = false
         continue
       }
 
@@ -125,9 +50,7 @@ export default class InlineLexer {
           src = cap[0].substring(1) + src
           continue
         }
-        // this.inLink = true
         out += this.outputLink(cap, link)
-        // this.inLink = false
         continue
       }
 
@@ -252,35 +175,6 @@ export default class InlineLexer {
       .replace(/"/g, '\u201d')
       // ellipses
       .replace(/\.{3}/g, '\u2026')
-  }
-
-  // /**
-  //  * Mangle Links
-  //  */
-  // mangle(text) {
-  //   return text
-  //   // if (!this.options.mangle) return text
-  //   // var out = '',
-  //   //   l = text.length,
-  //   //   i = 0,
-  //   //   ch
-  //   //
-  //   // for (; i < l; i++) {
-  //   //   ch = text.charCodeAt(i)
-  //   //   if (Math.random() > 0.5) {
-  //   //     ch = 'x' + ch.toString(16)
-  //   //   }
-  //   //   out += `&#${ch};`
-  //   // }
-  //   //
-  //   // return out
-  // }
-
-  /**
-   * Static Lexing/Compiling Method
-   */
-  static output(src, links, options) {
-    return new InlineLexer(links, options).output(src)
   }
 
   static escapes(text) {

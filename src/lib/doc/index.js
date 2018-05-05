@@ -21,7 +21,7 @@ export function marked(src, opt, callback) {
 
     opt = merge({}, defaults, opt || {})
 
-    var highlight = opt.highlight,
+    let highlight = opt.highlight,
       tokens,
       pending,
       i = 0
@@ -34,25 +34,18 @@ export function marked(src, opt, callback) {
 
     pending = tokens.length
 
-    var done = function (err) {
+    const done = function (err) {
       if (err) {
         opt.highlight = highlight
         return callback(err)
       }
-
-      var out
-
       try {
-        out = Parser.parse(tokens, opt)
+        return callback(null, Parser.parse(tokens, opt))
       } catch (e) {
-        err = e
+        return callback(e)
+      } finally {
+        opt.highlight = highlight
       }
-
-      opt.highlight = highlight
-
-      return err
-        ? callback(err)
-        : callback(null, out)
     }
 
     if (!highlight || highlight.length < 3) {

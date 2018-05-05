@@ -41,7 +41,7 @@ export default class Lexer {
    */
   token(src, top) {
     src = src.replace(/^ +$/gm, '')
-    var next,
+    let next,
       loose,
       cap,
       bull,
@@ -350,8 +350,7 @@ export default class Lexer {
    * Static Lex Method
    */
   static lex(src, options) {
-    var lexer = new Lexer(options)
-    return lexer.lex(src)
+    return new Lexer(options).lex(src)
   }
 }
 
