@@ -3,6 +3,7 @@ import defaults from './defaults'
 import Lexer from './Lexer'
 import Parser from './Parser'
 export {default as InlineLexer} from './InlineLexer'
+export {Lexer}
 
 export function marked(src, opt, callback) {
   // // throw error in case of non string input

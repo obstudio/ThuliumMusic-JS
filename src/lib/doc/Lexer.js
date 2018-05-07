@@ -1,6 +1,5 @@
 import defaults from './defaults'
-import {block} from './BlockRules'
-import {splitCells} from './util'
+import {edit, align} from './util'
 
 export default class Lexer {
   /**
@@ -10,17 +9,7 @@ export default class Lexer {
     this.tokens = []
     this.tokens.links = {}
     this.options = options || defaults
-    this.rules = block.normal
-
-    if (this.options.pedantic) {
-      this.rules = block.pedantic
-    } else if (this.options.gfm) {
-      if (this.options.tables) {
-        this.rules = block.tables
-      } else {
-        this.rules = block.gfm
-      }
-    }
+    this.rules = block
   }
 
   /**
@@ -57,25 +46,23 @@ export default class Lexer {
       // newline
       if (cap = this.rules.newline.exec(src)) {
         src = src.substring(cap[0].length)
-        if (cap[0].length > 1) {
-          this.tokens.push({
-            type: 'space'
-          })
-        }
+        // if (cap[0].length > 1) {
+        //   this.tokens.push({
+        //     type: 'space'
+        //   })
+        // }
       }
 
       // code
-      if (cap = this.rules.code.exec(src)) {
-        src = src.substring(cap[0].length)
-        cap = cap[0].replace(/^ {4}/gm, '')
-        this.tokens.push({
-          type: 'code',
-          text: !this.options.pedantic
-            ? cap.replace(/\n+$/, '')
-            : cap
-        })
-        continue
-      }
+      // if (cap = this.rules.code.exec(src)) {
+      //   src = src.substring(cap[0].length)
+      //   cap = cap[0].replace(/^ {4}/gm, '')
+      //   this.tokens.push({
+      //     type: 'code',
+      //     text: cap.replace(/\n+$/, '')
+      //   })
+      //   continue
+      // }
 
       // fences (gfm)
       if (cap = this.rules.fences.exec(src)) {
@@ -93,51 +80,63 @@ export default class Lexer {
         src = src.substring(cap[0].length)
         this.tokens.push({
           type: 'heading',
-          depth: cap[1].length,
+          level: cap[1].length,
+          text: cap[2]
+        })
+        continue
+      }
+
+      if (cap = this.rules.section.exec(src)) {
+        src = src.substring(cap[0].length)
+        this.tokens.push({
+          type: 'section',
+          level: cap[1].length,
           text: cap[2]
         })
         continue
       }
 
       // table no leading pipe (gfm)
-      if (top && (cap = this.rules.nptable.exec(src))) {
-        item = {
-          type: 'table',
-          header: splitCells(cap[1].replace(/^ *| *\| *$/g, '')),
-          align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-          cells: cap[3] ? cap[3].replace(/\n$/, '').split('\n') : []
-        }
-
-        if (item.header.length === item.align.length) {
-          src = src.substring(cap[0].length)
-
-          for (i = 0; i < item.align.length; i++) {
-            if (/^ *-+: *$/.test(item.align[i])) {
-              item.align[i] = 'right'
-            } else if (/^ *:-+: *$/.test(item.align[i])) {
-              item.align[i] = 'center'
-            } else if (/^ *:-+ *$/.test(item.align[i])) {
-              item.align[i] = 'left'
-            } else {
-              item.align[i] = null
-            }
-          }
-
-          for (i = 0; i < item.cells.length; i++) {
-            item.cells[i] = splitCells(item.cells[i], item.header.length)
-          }
-
-          this.tokens.push(item)
-
-          continue
-        }
-      }
+      // if (top && (cap = this.rules.nptable.exec(src))) {
+      //   item = {
+      //     type: 'table',
+      //     header: splitCells(cap[1].replace(/^ *| *\| *$/g, '')),
+      //     align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
+      //     cells: cap[3] ? cap[3].replace(/\n$/, '').split('\n') : []
+      //   }
+      //
+      //   if (item.header.length === item.align.length) {
+      //     src = src.substring(cap[0].length)
+      //
+      //     for (i = 0; i < item.align.length; i++) {
+      //       if (/^ *-+: *$/.test(item.align[i])) {
+      //         item.align[i] = 'right'
+      //       } else if (/^ *:-+: *$/.test(item.align[i])) {
+      //         item.align[i] = 'center'
+      //       } else if (/^ *:-+ *$/.test(item.align[i])) {
+      //         item.align[i] = 'left'
+      //       } else {
+      //         item.align[i] = null
+      //       }
+      //     }
+      //
+      //     for (i = 0; i < item.cells.length; i++) {
+      //       item.cells[i] = splitCells(item.cells[i], item.header.length)
+      //     }
+      //
+      //     this.tokens.push(item)
+      //
+      //     continue
+      //   }
+      // }
 
       // hr
       if (cap = this.rules.hr.exec(src)) {
         src = src.substring(cap[0].length)
         this.tokens.push({
-          type: 'hr'
+          type: 'hr',
+          single: cap[1] === '-',
+          style: cap[2].length === 1 ? 0 : cap[2][1] === ' ' ? 1 : 2
         })
         continue
       }
@@ -145,22 +144,17 @@ export default class Lexer {
       // blockquote
       if (cap = this.rules.blockquote.exec(src)) {
         src = src.substring(cap[0].length)
-
-        this.tokens.push({
-          type: 'blockquote_start'
-        })
-
+        const length = this.tokens.length
         cap = cap[0].replace(/^ *> ?/gm, '')
 
         // Pass `top` to keep the current
         // "toplevel" state. This is exactly
         // how markdown.pl works.
         this.token(cap, top)
-
         this.tokens.push({
-          type: 'blockquote_end'
+          type: 'blockquote',
+          content: this.tokens.splice(length, this.tokens.length - length)
         })
-
         continue
       }
 
@@ -170,19 +164,13 @@ export default class Lexer {
         bull = cap[2]
         isordered = bull.length > 1
 
-        this.tokens.push({
-          type: 'list_start',
-          ordered: isordered,
-          start: isordered ? +bull : ''
-        })
-
         // Get each top-level item.
         cap = cap[0].match(this.rules.item)
 
         next = false
         l = cap.length
         i = 0
-
+        const items = []
         for (; i < l; i++) {
           item = cap[i]
 
@@ -195,9 +183,7 @@ export default class Lexer {
           // list item contains. Hacky.
           if (~item.indexOf('\n ')) {
             space -= item.length
-            item = !this.options.pedantic
-              ? item.replace(new RegExp('^ {1,' + space + '}', 'gm'), '')
-              : item.replace(/^ {1,4}/gm, '')
+            item = item.replace(new RegExp(`^ {1,${space}}`, 'gm'), '')
           }
 
           // Determine whether the next list item belongs here.
@@ -219,40 +205,44 @@ export default class Lexer {
             if (!loose) loose = next
           }
 
-          this.tokens.push({
-            type: loose
-              ? 'loose_item_start'
-              : 'list_item_start'
-          })
-
+          const length = this.tokens.length
           // Recurse.
           this.token(item, false)
-
-          this.tokens.push({
-            type: 'list_item_end'
+          items.push({
+            type: 'item',
+            loose,
+            content: this.tokens.splice(length, this.tokens.length - length)
           })
         }
-
         this.tokens.push({
-          type: 'list_end'
+          type: 'list',
+          ordered: isordered,
+          start: isordered ? +bull : '',
+          content: items
         })
+        continue
+      }
+
+      // inlinelist
+      if (cap = this.rules.inlinelist.exec(src)) {
+        src = src.substring(cap[0].length)
 
         continue
       }
 
       // html
-      if (cap = this.rules.html.exec(src)) {
-        src = src.substring(cap[0].length)
-        this.tokens.push({
-          type: this.options.sanitize
-            ? 'paragraph'
-            : 'html',
-          pre: !this.options.sanitizer &&
-          (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
-          text: cap[0]
-        })
-        continue
-      }
+      // if (cap = this.rules.html.exec(src)) {
+      //   src = src.substring(cap[0].length)
+      //   this.tokens.push({
+      //     type: this.options.sanitize
+      //       ? 'paragraph'
+      //       : 'html',
+      //     pre: !this.options.sanitizer &&
+      //     (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
+      //     text: cap[0]
+      //   })
+      //   continue
+      // }
 
       // def
       if (top && (cap = this.rules.def.exec(src))) {
@@ -270,50 +260,46 @@ export default class Lexer {
 
       // table (gfm)
       if (top && (cap = this.rules.table.exec(src))) {
+        src = src.substring(cap[0].length)
         item = {
           type: 'table',
-          header: splitCells(cap[1].replace(/^ *| *\| *$/g, '')),
-          align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-          cells: cap[3] ? cap[3].replace(/(?: *\| *)?\n$/, '').split('\n') : []
+          cells: []
         }
-
-        if (item.header.length === item.align.length) {
-          src = src.substring(cap[0].length)
-
-          for (i = 0; i < item.align.length; i++) {
-            if (/^ *-+: *$/.test(item.align[i])) {
-              item.align[i] = 'right'
-            } else if (/^ *:-+: *$/.test(item.align[i])) {
-              item.align[i] = 'center'
-            } else if (/^ *:-+ *$/.test(item.align[i])) {
-              item.align[i] = 'left'
-            } else {
-              item.align[i] = null
-            }
+        const headers = cap[1].split(/\t+/).map((col) => ({
+          em: col.includes('*'),
+          al: align(col)
+        }))
+        const cells = cap[2].split('\n').map((line) => line.split(/\t+/))
+        for (const row of cells) {
+          const rowRes = []
+          let em = false
+          if (row[0].startsWith('*')) {
+            em = true
+            row[0] = row[0].slice(1)
           }
-
-          for (i = 0; i < item.cells.length; i++) {
-            item.cells[i] = splitCells(
-              item.cells[i].replace(/^ *\| *| *\| *$/g, ''),
-              item.header.length)
+          for (i = 0; i < row.length; ++i) {
+            const cell = row[i], header = headers[i]
+            rowRes.push({
+              em: header.em || em,
+              al: align(cell[0]) || header.al
+            })
           }
-
-          this.tokens.push(item)
-
-          continue
+          item.cells.push(rowRes)
         }
+        this.tokens.push(item)
+        continue
       }
 
       // lheading
-      if (cap = this.rules.lheading.exec(src)) {
-        src = src.substring(cap[0].length)
-        this.tokens.push({
-          type: 'heading',
-          depth: cap[2] === '=' ? 1 : 2,
-          text: cap[1]
-        })
-        continue
-      }
+      // if (cap = this.rules.lheading.exec(src)) {
+      //   src = src.substring(cap[0].length)
+      //   this.tokens.push({
+      //     type: 'heading',
+      //     depth: cap[2] === '=' ? 1 : 2,
+      //     text: cap[1]
+      //   })
+      //   continue
+      // }
 
       // top-level paragraph
       if (top && (cap = this.rules.paragraph.exec(src))) {
@@ -345,17 +331,50 @@ export default class Lexer {
 
     return this.tokens
   }
-
-  /**
-   * Static Lex Method
-   */
-  static lex(src, options) {
-    return new Lexer(options).lex(src)
-  }
 }
 
-/**
- * Expose Block Rules
- */
+const block = {
+  newline: /^\n+/,
+  // code: /^( {4}[^\n]+\n*)+/,
+  fences: /^ *(`{3,})[ .]*(\S+)? *\n([\s\S]*?)\n? *\1 *(?:\n+|$)/,
+  hr: /^ {0,3}([-=])(\1|\.\1| \1)\2+ *(?:\n+|$)/,
+  section: /^ *(\^{1,6}) *([^\n]+?) *(?:\^+ *)?(?:\n+|$)/,
+  heading: /^ *(#{1,6}) +([^\n]+?) *(#*) *(?:\n+|$)/,
+  // nptable: /^ *([^|\n ].*\|.*)\n *([-:]+ *\|[-| :]*)(?:\n((?:.*[^>\n ].*(?:\n|$))*)\n*|$)/,
+  blockquote: /^( {0,3}[>?] ?(paragraph|[^\n]*)(?:\n|$))+/,
+  list: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
+  inlinelist: /^((?: *\+[^\n]*[^+\n]\n(?= *\+))*(?: *\+[^\n]+\+?(?:\n+|$)))/,
+  def: /^ {0,3}\[((?!\s*])(?:\\[\[\]]|[^\[\]])+)]: *\n? *<?([^\s>]+)>?(?:(?: +\n? *| *\n *)((?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))))? *(?:\n+|$)/,
+  // table: /^ *\|(.+)\n *\|?( *[-:]+[-| :]*)(?:\n((?: *[^>\n ].*(?:\n|$))*)\n*|$)/,
+  table: /^([=<>*\t]+)\n((?:.+\n)*.*)(?:\n{2,}|$)/,
+  paragraph: /^([^\n]+(?:\n(?!hr|heading| {0,3}>)[^\n]+)*)/,
+  text: /^[^\n]+/
+}
+
+block.bullet = /(?:-|\d+\.)/
+block.item = /^( *)(bull) [^\n]*(?:\n(?!\1bull )[^\n]*)*/
+block.item = edit(block.item, 'gm')
+  .replace(/bull/g, block.bullet)
+  .getRegex()
+block.list = edit(block.list)
+  .replace(/bull/g, block.bullet)
+  .replace('hr', '\\n+(?=\\1?(?:(?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$))')
+  .replace('def', '\\n+(?=' + block.def.source + ')')
+  .getRegex()
+
+block.paragraph = edit(block.paragraph)
+  .replace('hr', block.hr)
+  .replace('heading', block.heading)
+  .getRegex()
+
+block.blockquote = edit(block.blockquote)
+  .replace('paragraph', block.paragraph)
+  .getRegex()
+
+block.paragraph = edit(block.paragraph)
+  .replace('(?!', '(?!' +
+    block.fences.source.replace('\\1', '\\2') + '|' +
+    block.list.source.replace('\\1', '\\3') + '|')
+  .getRegex()
 
 Lexer.rules = block

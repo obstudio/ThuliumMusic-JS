@@ -42,19 +42,6 @@ export function resolveUrl(base, href) {
   }
 }
 
-export function splitCells(tableRow, count) {
-  const cells = tableRow.replace(/([^\\])\|/g, '$1 |').split(/ +\| */)
-  if (cells.length > count) {
-    cells.splice(count)
-  } else {
-    while (cells.length < count) cells.push('')
-  }
-  for (let i = 0; i < cells.length; i++) {
-    cells[i] = cells[i].replace(/\\\|/g, '|')
-  }
-  return cells
-}
-
 export function escape(html, encode) {
   return html
     .replace(!encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
@@ -76,4 +63,8 @@ export function unescape(html) {
     }
     return ''
   })
+}
+
+export function align(col) {
+  return col.includes('<') ? 1 : col.includes('=') ? 2 : col.includes('>') ? 3 : 0
 }
