@@ -17,16 +17,3 @@ Vue.component('Paragraph', Paragraph)
 Vue.component('Heading', Heading)
 Vue.component('Section', Section)
 Vue.component('Blockquote', Blockquote)
-// export default {
-//   components: {
-//     Code,
-//     List,
-//     Split,
-//     Table,
-//     Textblock,
-//     Heading,
-//     Section,
-//     Blockquote,
-//     Paragraph
-//   }
-// }
