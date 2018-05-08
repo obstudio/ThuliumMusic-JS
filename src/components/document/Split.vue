@@ -1,23 +1,14 @@
 <template>
-  <hr :class="[options.dashed ? options.double ? 'dd' : 'dashed' : options.double ? 'double' : 'normal']">
+  <hr :class="[node.style === 1 ? node.double ? 'dd' : 'dash' : node.double ? 'double' : 'normal']">
 </template>
 
 <script>
-// import base from './index'
 export default {
   name: 'Split',
-  // extends: base,
   props: {
-    // content: {
-    //   type: Array,
-    //   required: true
-    // },
-    options: {
+    node: {
       type: Object,
-      default: () => ({
-        dashed: false,
-        double: false
-      })
+      required: true
     }
   }
 }
@@ -31,12 +22,12 @@ export default {
   position: relative;
 }
 
-.dd:before {
+.dd::before {
   content: '';
   width: 100%;
   border-top-style: dashed;
   position: absolute;
-  left: 0%;
+  left: 0;
   top: 8px;
 }
 

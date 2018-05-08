@@ -29,6 +29,6 @@ export default {
   position: absolute;
   left: 0;
   top: 0;
-  overflow: hidden;
+  /*overflow: hidden;*/
 }
 </style>

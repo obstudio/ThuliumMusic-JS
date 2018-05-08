@@ -1,28 +1,24 @@
 <template>
-  <ol v-if="options.ordered">
-    <li v-for="(comp, index) in content" :key="index">
-      <component :is="comp.type" :content="comp.content" :options="comp.options"></component>
-    </li>
-  </ol>
-  <ul v-else>
-    <li v-for="(comp, index) in content" :key="index">
-      <component :is="comp.type" :content="comp.content" :options="comp.options"></component>
+  <ul v-if="node.inline">
+    <li v-for="(item, index) in node.content" :key="index" v-html="item"></li>
+  </ul>
+  <ul v-else-if="!node.ordered">
+    <li v-for="(item, index) in node.content" :key="index">
+      <component v-for="(comp, index) in item.content" :key="index" :is="comp.type" :node="comp"></component>
     </li>
   </ul>
+  <ol v-else>
+    <li v-for="(item, index) in node.content" :key="index">
+      <component v-for="(comp, index) in item.content" :key="index" :is="comp.type" :node="comp"></component>
+    </li>
+  </ol>
 </template>
 
 <script>
-import base from './index'
-
 export default {
   name: 'List',
-  extends: base,
   props: {
-    content: {
-      type: Array,
-      required: true
-    },
-    options: {
+    node: {
       type: Object,
       required: true
     }

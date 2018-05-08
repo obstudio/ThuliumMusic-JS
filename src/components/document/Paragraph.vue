@@ -1,10 +1,10 @@
 <template>
-  <span v-html="node.text"></span>
+  <p v-html="node.text"></p>
 </template>
 
 <script>
 export default {
-  name: 'Textblock',
+  name: 'Paragraph',
   props: {
     node: {
       type: Object,

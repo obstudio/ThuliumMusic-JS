@@ -1,24 +1,18 @@
 <template>
-  <div v-html="res" v-once></div>
+  <div v-html="res"></div>
 </template>
 
 <script>
-// import base from './index'
-import { defineLanguage } from '@/Editor'
+import {defineLanguage} from '../../Editor'
 export default {
-  name: 'Codeblock',
+  name: 'Code',
   data() {
     return {
       res: ''
     }
   },
-  // extends: base,
   props: {
-    content: {
-      type: Array,
-      required: true
-    },
-    options: {
+    node: {
       type: Object,
       required: true
     }
@@ -26,7 +20,7 @@ export default {
   mounted() {
     if ('monaco' in window) {
       window.monaco.editor
-        .colorize(this.content, this.options.language)
+        .colorize(this.node.content, this.node.lang)
         .then(res => {
           this.res = res
         })
@@ -34,7 +28,7 @@ export default {
       window.require(['vs/editor/editor.main'], () => {
         defineLanguage()
         window.monaco.editor
-          .colorize(this.content, this.options.language)
+          .colorize(this.node.content, this.node.lang)
           .then(res => {
             this.res = res
           })

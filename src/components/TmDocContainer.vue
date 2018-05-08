@@ -1,30 +1,33 @@
 <template>
-  <div v-html="content">
-  </div>
+<div>
+  <textarea v-model="raw" title="输入测试"></textarea>
+  <Document :content="root"></Document>
+</div>
 </template>
 
 <script>
+import Document from './Document.vue'
 export default {
   name: 'TmDocContainer',
+  components: {Document},
   data() {
     return {
-      content: ''
+      raw: null
+    }
+  },
+  computed: {
+    root() {
+      return this.$md(this.raw)
     }
   },
   methods: {
     async fetchDoc(name) {
       const doc = await fetch(`/static/docs/${name}.tmd`)
-      const text = await doc.text()
-      return text
+      return doc.text()
     },
     setContent() {
       this.fetchDoc(this.doc).then(ret => {
-        this.$md.parse(ret, (err, res) => {
-          if (err) {
-            return
-          }
-          this.content = res
-        })
+        this.content = this.$md(ret).result
         /* this.content = ret
         this.$nextTick(() => {
           new Promise((resolve, reject) => {

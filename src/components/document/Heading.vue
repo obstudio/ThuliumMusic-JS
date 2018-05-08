@@ -1,10 +1,10 @@
 <template>
-  <span v-html="node.text"></span>
+  <component :is="'h'+node.level" v-html="node.text"></component>
 </template>
 
 <script>
 export default {
-  name: 'Textblock',
+  name: 'Heading',
   props: {
     node: {
       type: Object,
@@ -14,4 +14,6 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+
+</style>
