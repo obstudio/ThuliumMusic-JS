@@ -12,10 +12,6 @@ export function edit(regex, opt) {
   }
 }
 
-export function merge(obj, ...rest) {
-  return Object.assign(obj, ...rest)
-}
-
 export const originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i
 
 const baseUrls = {}

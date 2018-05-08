@@ -1,5 +1,3 @@
-import {Renderer} from './Renderer'
-
 export default {
   baseUrl: null,
   breaks: false,
@@ -10,7 +8,7 @@ export default {
   langPrefix: 'lang-',
   mangle: true,
   pedantic: false,
-  renderer: new Renderer(),
+  // renderer: new Renderer(),
   sanitize: false,
   sanitizer: null,
   silent: false,
