@@ -43,4 +43,42 @@ export default {
 .em {
   font-weight: bold;
 }
+
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+table {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+table {
+  display: block;
+  width: 100%;
+  overflow: auto;
+}
+
+table th {
+  font-weight: 600;
+}
+
+table th, table td {
+  padding: 6px 13px;
+  border: 1px solid #dfe2e5;
+}
+
+table tr {
+  background-color: #fff;
+  border-top: 1px solid #c6cbd1;
+}
+
+table tr:nth-child(2n) {
+  background-color: #f6f8fa;
+}
+
+td, th {
+  padding: 0;
+}
 </style>

@@ -15,7 +15,7 @@ export default {
 </script>
 
 <style>
-.dd {
+/*.dd {
   border: none;
   border-top-style: dashed;
   margin: auto;
@@ -44,5 +44,43 @@ export default {
 .normal {
   border: none;
   border-top-style: solid;
+}*/
+
+hr {
+  box-sizing: content-box;
+  height: 0;
+  overflow: visible;
+}
+
+hr {
+  height: 0;
+  margin: 15px 0;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #dfe2e5;
+}
+
+hr::before {
+  display: table;
+  content: "";
+}
+
+hr::after {
+  display: table;
+  clear: both;
+  content: "";
+}
+
+hr {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: #e1e4e8;
+  border: 0;
+}
+
+hr {
+  border-bottom-color: #eee;
 }
 </style>

@@ -31,7 +31,48 @@ export default {
     list-style: none;
     padding-top: 20px;
   }
+
   .tm-horizontal li {
     display: inline;
+  }
+
+  ul, ol {
+    padding-left: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  ol ol, ul ol {
+    list-style-type: lower-roman;
+  }
+
+  ul ul ol, ul ol ol, ol ul ol, ol ol ol {
+    list-style-type: lower-alpha;
+  }
+
+  ul, ol {
+    margin-top: 0;
+    margin-bottom: 16px;
+  }
+
+  ul, ol {
+    padding-left: 2em;
+  }
+
+  ul ul, ul ol, ol ol, ol ul {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  li {
+    word-wrap: break-all;
+  }
+
+  li > p {
+    margin-top: 16px;
+  }
+
+  li + li {
+    margin-top: 0.25em;
   }
 </style>
