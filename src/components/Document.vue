@@ -33,26 +33,21 @@ export default {
     line-height: 1.5;
     word-wrap: break-word;
   }
-
   .markdown-body::before {
     display: table;
     content: "";
   }
-
   .markdown-body::after {
     display: table;
     clear: both;
     content: "";
   }
-
   .markdown-body>*:first-child {
     margin-top: 0 !important;
   }
-
   .markdown-body>*:last-child {
     margin-bottom: 0 !important;
   }
-
   .markdown-body * {
     box-sizing: border-box;
   }
@@ -92,7 +87,6 @@ export default {
   }
 
   .markdown-body code,
-  .markdown-body kbd,
   .markdown-body pre {
     font-family: monospace, monospace;
     font-size: 1em;
@@ -146,20 +140,6 @@ export default {
     margin-bottom: 16px;
   }
 
-  .markdown-body kbd {
-    display: inline-block;
-    padding: 3px 5px;
-    font-size: 11px;
-    line-height: 10px;
-    color: #444d56;
-    vertical-align: middle;
-    background-color: #fafbfc;
-    border: solid 1px #c6cbd1;
-    border-bottom-color: #959da5;
-    border-radius: 3px;
-    box-shadow: inset 0 -1px 0 #959da5;
-  }
-
   .markdown-body code {
     padding: 0.2em 0.4em;
     margin: 0;
@@ -200,20 +180,6 @@ export default {
   .markdown-body .full-commit .btn-outline:not(:disabled):hover {
     color: #005cc5;
     border-color: #005cc5;
-  }
-
-  .markdown-body kbd {
-    display: inline-block;
-    padding: 3px 5px;
-    font: 11px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-    line-height: 10px;
-    color: #444d56;
-    vertical-align: middle;
-    background-color: #fafbfc;
-    border: solid 1px #d1d5da;
-    border-bottom-color: #c6cbd1;
-    border-radius: 3px;
-    box-shadow: inset 0 -1px 0 #c6cbd1;
   }
 
   .markdown-body :checked+.radio-label {
