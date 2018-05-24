@@ -593,7 +593,7 @@ export function defineLanguage() {
     extensions: ['tm']
   })
   window.monaco.editor.defineTheme('tm', {
-    base: 'vs-dark',
+    base: 'vs',
     inherit: true,
     rules: ColorRules,
     colors: {}
