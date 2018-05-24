@@ -86,74 +86,22 @@ export default {
     padding-right: 20px;
   }
 
-  .markdown-body code,
-  .markdown-body pre {
-    font-family: monospace, monospace;
-    font-size: 1em;
-  }
-
-  .markdown-body code {
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-    font-size: 12px;
-  }
-
-  .markdown-body pre {
-    margin-top: 0;
-    margin-bottom: 0;
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-    font-size: 12px;
-  }
-
   .markdown-body .anchor {
     float: left;
     padding-right: 4px;
     margin-left: -20px;
     line-height: 1;
   }
-
   .markdown-body .anchor:focus {
     outline: none;
   }
 
-  .markdown-body pre {
-    margin-top: 0;
-    margin-bottom: 16px;
-  }
-
   .markdown-body code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
     padding: 0.2em 0.4em;
     margin: 0;
     font-size: 85%;
     background-color: rgba(27,31,35,0.05);
-    border-radius: 3px;
-  }
-
-  .markdown-body pre {
-    word-wrap: normal;
-  }
-
-  .markdown-body pre>code {
-    padding: 0;
-    margin: 0;
-    font-size: 100%;
-    word-break: normal;
-    white-space: pre;
-    background: transparent;
-    border: 0;
-  }
-
-  .markdown-body .highlight pre {
-    margin-bottom: 0;
-    word-break: normal;
-  }
-
-  .markdown-body .highlight pre,
-  .markdown-body pre {
-    padding: 16px;
-    overflow: auto;
-    font-size: 85%;
-    line-height: 1.45;
-    background-color: #f6f8fa;
     border-radius: 3px;
   }
 </style>

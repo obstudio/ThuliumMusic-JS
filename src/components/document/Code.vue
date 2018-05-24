@@ -39,5 +39,17 @@ export default {
 </script>
 
 <style>
-
+  pre {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    margin-top: 0;
+    word-wrap: normal;
+    margin-bottom: 0;
+    word-break: normal;
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f6f8fa;
+    border-radius: 3px;
+  }
 </style>
