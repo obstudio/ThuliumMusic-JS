@@ -3,6 +3,7 @@
 </template>
 
 <script>
+import * as monaco from 'monaco-editor'
 import {defineLanguage} from '../../Editor'
 export default {
   name: 'Code',
@@ -17,23 +18,22 @@ export default {
       required: true
     }
   },
-  mounted() {
-    if ('monaco' in window) {
-      window.monaco.editor
-        .colorize(this.node.content, this.node.lang)
+  watch: {
+    node(newNode) {
+      monaco.editor
+        .colorize(newNode.code, newNode.lang)
         .then(res => {
           this.res = res
         })
-    } else {
-      window.require(['vs/editor/editor.main'], () => {
-        defineLanguage()
-        window.monaco.editor
-          .colorize(this.node.content, this.node.lang)
-          .then(res => {
-            this.res = res
-          })
-      })
     }
+  },
+  mounted() {
+    defineLanguage()
+    monaco.editor
+      .colorize(this.node.code, this.node.lang)
+      .then(res => {
+        this.res = res
+      })
   }
 }
 </script>

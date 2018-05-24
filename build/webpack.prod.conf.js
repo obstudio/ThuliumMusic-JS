@@ -7,30 +7,26 @@ const merge = require('webpack-merge')
 const baseWebpackConfig = require('./webpack.base.conf')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 const env = require('../config/prod.env')
 
 const webpackConfig = merge(baseWebpackConfig, {
+  mode: 'production',  
   module: {
-    rules: [
-      {
-        test: /\.css$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          'css-loader'
-        ]
-      }
-    ]
+    rules: utils.styleLoaders({
+      sourceMap: config.build.productionSourceMap,
+      extract: true,
+      usePostCSS: true
+    })
   },
-  mode: 'production',
-  devtool: false,
+  devtool: config.build.productionSourceMap ? config.build.devtool : false,
   output: {
     path: config.build.assetsRoot,
-    filename: utils.assetsPath('js/[name].js'),
-    chunkFilename: utils.assetsPath('js/[id].js'),
+    filename: utils.assetsPath('js/[name].[chunkhash].js'),
+    // chunkFilename: utils.assetsPath('js/[id].js'),
     globalObject: 'self'
   },
   plugins: [
@@ -38,7 +34,11 @@ const webpackConfig = merge(baseWebpackConfig, {
     new webpack.DefinePlugin({
       'process.env': env
     }),
-    new webpack.IgnorePlugin(/^((fs)|(path)|(os)|(crypto)|(source-map-support))$/,/vs\/language\/typescript\/lib/),
+    // extract css into its own file
+    new MiniCssExtractPlugin({
+      filename: utils.assetsPath('css/[name].[chunkhash].css'),
+    }),
+    // new webpack.IgnorePlugin(/^((fs)|(path)|(os)|(crypto)|(source-map-support))$/,/vs\/language\/typescript\/lib/),
     // Compress extracted CSS. We are using this plugin so that possible
     // duplicated CSS from different components can be deduped.
     new OptimizeCSSPlugin({
@@ -64,9 +64,10 @@ const webpackConfig = merge(baseWebpackConfig, {
       chunksSortMode: 'dependency'
     }),
     // keep module.id stable when vendor modules does not change
+    new webpack.NamedChunksPlugin(),    
     new webpack.HashedModuleIdsPlugin(),
     // enable scope hoisting
-    new webpack.optimize.ModuleConcatenationPlugin(),
+    // new webpack.optimize.ModuleConcatenationPlugin(),
     // split vendor js into its own file
     /* new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor',
@@ -104,16 +105,38 @@ const webpackConfig = merge(baseWebpackConfig, {
         to: config.build.assetsSubDirectory,
         ignore: ['.*']
       },
-      {
-        from: 'node_modules/monaco-editor/min/vs',
-        to: 'vs',
-        ignore: ['**/basic-languages/**/*']
-      }
-    ]),
-    new MiniCssExtractPlugin({
-      filename: 'static/css/output.css'
-    })
-  ]
+      // {
+      //   from: 'node_modules/monaco-editor/min/vs',
+      //   to: 'vs',
+      //   ignore: ['**/basic-languages/**/*']
+      // }
+    ])
+  ],
+  optimization: {
+    concatenateModules: true,
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        vendor: {
+          name: 'vendor',
+          test: /[\\/]node_modules[\\/]/,
+          enforce: true,
+        },
+      },
+    },
+    runtimeChunk: 'single',
+    minimizer: [
+      new UglifyJsPlugin({
+        uglifyOptions: {
+          compress: {
+            warnings: false
+          }
+        },
+        sourceMap: config.build.productionSourceMap,
+        parallel: true
+      }),
+    ],
+  },
 })
 
 if (config.build.productionGzip) {

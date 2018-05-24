@@ -231,7 +231,7 @@ export default class Lexer {
       if (cap = this.rules.inlinelist.exec(src)) {
         src = src.substring(cap[0].length)
         const all = cap[0].trim().replace(/\n/g, '').slice(1)
-        const r = /^((?:[^\\+]|\\.)+)(?:\+|$)/g
+        const r = /((?:[^\\+]|\\.)+)(?:\+|$)/g
         let match
         const items = []
         while ((match = r.exec(all)) !== null) items.push(match[1])
