@@ -92,26 +92,6 @@ export default {
     font-size: 1em;
   }
 
-  .markdown-body input {
-    font: inherit;
-    margin: 0;
-  }
-
-  .markdown-body input {
-    overflow: visible;
-  }
-
-  .markdown-body [type="checkbox"] {
-    box-sizing: border-box;
-    padding: 0;
-  }
-
-  .markdown-body input {
-    font-family: inherit;
-    font-size: inherit;
-    line-height: inherit;
-  }
-
   .markdown-body code {
     font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
     font-size: 12px;
@@ -175,29 +155,5 @@ export default {
     line-height: 1.45;
     background-color: #f6f8fa;
     border-radius: 3px;
-  }
-
-  .markdown-body .full-commit .btn-outline:not(:disabled):hover {
-    color: #005cc5;
-    border-color: #005cc5;
-  }
-
-  .markdown-body :checked+.radio-label {
-    position: relative;
-    z-index: 1;
-    border-color: #0366d6;
-  }
-
-  .markdown-body .task-list-item {
-    list-style-type: none;
-  }
-
-  .markdown-body .task-list-item+.task-list-item {
-    margin-top: 3px;
-  }
-
-  .markdown-body .task-list-item input {
-    margin: 0 0.2em 0.25em -1.6em;
-    vertical-align: middle;
   }
 </style>
