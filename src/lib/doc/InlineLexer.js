@@ -70,7 +70,7 @@ export default class InlineLexer {
       // grey
       if (cap = this.rules.grey.exec(src)) {
         src = src.substring(cap[0].length)
-        out += `<span class="tmd-grey">${this.output(cap[2] || cap[1])}</span>`
+        out += `<span class="tm-grey">${this.output(cap[2] || cap[1])}</span>`
         continue
       }
 

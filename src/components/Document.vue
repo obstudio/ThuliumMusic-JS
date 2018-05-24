@@ -99,4 +99,8 @@ export default {
     background-color: rgba(27,31,35,0.05);
     border-radius: 3px;
   }
+
+  .tm-grey {
+    color: grey;
+  }
 </style>

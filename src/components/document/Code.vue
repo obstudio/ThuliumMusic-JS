@@ -18,22 +18,25 @@ export default {
       required: true
     }
   },
+  methods: {
+    render(node) {
+      // if (node.lang === null || node.lang === undefined) {
+      //   this.res = node.code
+      // } else {
+      monaco.editor.colorize(this.node.code, this.node.lang).then(res => {
+        this.res = res
+      })
+      // }
+    }
+  },
   watch: {
     node(newNode) {
-      monaco.editor
-        .colorize(newNode.code, newNode.lang)
-        .then(res => {
-          this.res = res
-        })
+      this.render(newNode)
     }
   },
   mounted() {
     defineLanguage()
-    monaco.editor
-      .colorize(this.node.code, this.node.lang)
-      .then(res => {
-        this.res = res
-      })
+    this.render(this.node)
   }
 }
 </script>

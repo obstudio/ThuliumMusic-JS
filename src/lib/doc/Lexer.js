@@ -57,15 +57,15 @@ export default class Lexer {
       }
 
       // code
-      // if (cap = this.rules.code.exec(src)) {
-      //   src = src.substring(cap[0].length)
-      //   cap = cap[0].replace(/^ {4}/gm, '')
-      //   this.tokens.push({
-      //     type: 'code',
-      //     text: cap.replace(/\n+$/, '')
-      //   })
-      //   continue
-      // }
+      if (cap = this.rules.code.exec(src)) {
+        src = src.substring(cap[0].length)
+        this.tokens.push({
+          type: 'Code',
+          lang: null,
+          code: cap[1]
+        })
+        continue
+      }
 
       // fences (gfm)
       if (cap = this.rules.fences.exec(src)) {
@@ -381,7 +381,7 @@ export default class Lexer {
 
 const block = {
   newline: /^\n+/,
-  // code: /^( {4}[^\n]+\n*)+/,
+  code: /^ *>>>(.+?)(?:\n+|$)/,
   fences: /^ *(`{3,})[ .]*(\S+)? *\n([\s\S]*?)\n? *\1 *(?:\n+|$)/,
   hr: /^ {0,3}([-=])(\1|\.\1| \1)\2+ *(?:\n+|$)/,
   section: /^ *(\^{1,6}) *([^\n]+?) *(?:\^+ *)?(?:\n+|$)/,
