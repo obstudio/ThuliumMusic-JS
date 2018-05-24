@@ -15,7 +15,7 @@ export default {
 </script>
 
 <style>
-  .markdown-body p {
+  p {
     margin-top: 0;
     margin-bottom: 16px;
   }

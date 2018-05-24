@@ -14,7 +14,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 /*.dd {
   border: none;
   border-top-style: dashed;

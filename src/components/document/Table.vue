@@ -39,7 +39,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .em {
   font-weight: bold;
 }
@@ -47,14 +47,8 @@ export default {
 table {
   border-spacing: 0;
   border-collapse: collapse;
-}
-
-table {
   margin-top: 0;
   margin-bottom: 16px;
-}
-
-table {
   display: block;
   width: 100%;
   overflow: auto;

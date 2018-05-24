@@ -38,7 +38,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
   pre {
     font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
     margin-top: 0;
