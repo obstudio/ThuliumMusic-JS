@@ -11,6 +11,7 @@ export default class Lexer {
     this.tokens.links = {}
     this.options = options || defaults
     this.rules = block
+    this.secLevel = 1
   }
 
   /**
@@ -89,13 +90,46 @@ export default class Lexer {
         continue
       }
 
+      // section
       if (cap = this.rules.section.exec(src)) {
         src = src.substring(cap[0].length)
-        this.tokens.push({
-          type: 'Section',
-          level: cap[1].length,
-          text: cap[2]
-        })
+        bull = '^'
+
+        // Get each top-level item.
+        cap = cap[0].match(this.rules.sec)
+
+        next = false
+        l = cap.length
+        i = 0
+        const items = []
+        for (; i < l; i++) {
+          item = cap[i]
+
+          // Remove the list item's bullet
+          // so it is seen as the next token.
+          space = item.length
+          const heading = item.match(/^( *\^ +)([^ \n]*) *(\^)?(?:\n|$)/)
+          item = item.slice(heading[0].length)
+
+          // Outdent whatever the
+          // list item contains. Hacky.
+          if (~item.indexOf('\n ')) {
+            space = heading[1].length
+            item = item.replace(new RegExp(`^ {1,${space}}`, 'gm'), '')
+          }
+          const length = this.tokens.length
+          this.secLevel++
+          this.token(item, false)
+          this.secLevel--
+          items.push({
+            type: 'Section',
+            level: this.secLevel,
+            text: heading[2],
+            center: heading[3] === '^',
+            content: this.tokens.splice(length)
+          })
+        }
+        this.tokens.push(...items)
         continue
       }
 
@@ -384,7 +418,8 @@ const block = {
   code: /^ *>>>(.+?)(?:\n+|$)/,
   fences: /^ *(`{3,})[ .]*(\S+)? *\n([\s\S]*?)\n? *\1 *(?:\n+|$)/,
   hr: /^ {0,3}([-=])(\1|\.\1| \1)\2+ *(?:\n+|$)/,
-  section: /^ *(\^{1,6}) *([^\n]+?) *(?:\^+ *)?(?:\n+|$)/,
+  section: /^( *)(\^) [\s\S]+?(?:\n{2,}(?! )(?!\1\^ )\n*|\s*$)/,
+  // section: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
   heading: /^ *(#{1,6}) +([^\n]+?) *(#*) *(?:\n+|$)/,
   // nptable: /^ *([^|\n ].*\|.*)\n *([-:]+ *\|[-| :]*)(?:\n((?:.*[^>\n ].*(?:\n|$))*)\n*|$)/,
   blockquote: /^( {0,3}[>?] ?(paragraph|[^\n]*)(?:\n|$))+/,
@@ -407,6 +442,8 @@ block.list = edit(block.list)
   .replace('hr', '\\n+(?=\\1?(?:(?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$))')
   .replace('def', `\\n+(?=${block.def.source})`)
   .getRegex()
+
+block.sec = /^( *)(\^) [^\n]*(?:\n(?!\1\^ )[^\n]*)*/gm
 
 block.paragraph = edit(block.paragraph)
   .replace('hr', block.hr)

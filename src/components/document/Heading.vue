@@ -55,45 +55,11 @@ export default {
     font-weight: 600;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     margin-top: 24px;
     margin-bottom: 16px;
     font-weight: 600;
     line-height: 1.25;
-  }
-
-  h1 .octicon-link,
-  h2 .octicon-link,
-  h3 .octicon-link,
-  h4 .octicon-link,
-  h5 .octicon-link,
-  h6 .octicon-link {
-    color: #1b1f23;
-    vertical-align: middle;
-    visibility: hidden;
-  }
-
-  h1:hover .anchor,
-  h2:hover .anchor,
-  h3:hover .anchor,
-  h4:hover .anchor,
-  h5:hover .anchor,
-  h6:hover .anchor {
-    text-decoration: none;
-  }
-
-  h1:hover .anchor .octicon-link,
-  h2:hover .anchor .octicon-link,
-  h3:hover .anchor .octicon-link,
-  h4:hover .anchor .octicon-link,
-  h5:hover .anchor .octicon-link,
-  h6:hover .anchor .octicon-link {
-    visibility: visible;
   }
 
   h1 {
