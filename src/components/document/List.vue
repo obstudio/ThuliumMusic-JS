@@ -1,5 +1,5 @@
 <template>
-  <ul v-if="node.inline">
+  <ul v-if="node.inline" class="tm-horizontal">
     <li v-for="(item, index) in node.content" :key="index" v-html="item"></li>
   </ul>
   <ul v-else-if="!node.ordered">
@@ -27,5 +27,11 @@ export default {
 </script>
 
 <style>
-
+  .tm-horizontal {
+    list-style: none;
+    padding-top: 20px;
+  }
+  .tm-horizontal li {
+    display: inline;
+  }
 </style>

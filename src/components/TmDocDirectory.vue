@@ -1,6 +1,5 @@
 <template>
-<el-menu background-color="#545c64" text-color="#fff"
-        active-text-color="#ffd04b" :router="true">
+<el-menu class="tm-nav" :router="true">
   <el-menu-item v-for="item in items" :key="item" :index="makeURL(item)">
     <i class="el-icon-menu"></i>
     <span slot="title">{{item}}</span>
@@ -25,5 +24,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
+.tm-nav {
+  position: fixed;
+}
 </style>

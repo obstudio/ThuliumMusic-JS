@@ -17,6 +17,7 @@ export default {
   },
   computed: {
     root() {
+      console.log(this.$md(this.raw))
       return this.$md(this.raw)
     }
   },
@@ -27,22 +28,7 @@ export default {
     },
     setContent() {
       this.fetchDoc(this.doc).then(ret => {
-        this.content = this.$md(ret).result
-        /* this.content = ret
-        this.$nextTick(() => {
-          new Promise((resolve, reject) => {
-            window.require(['vs/editor/editor.main'], () => {
-              defineLanguage()
-              resolve()
-            })
-          }).then(() => {
-            const codes = this.$el.getElementsByClassName('language-tm')
-            Array.prototype.forEach.call(codes, el => {
-              el.setAttribute('data-lang', 'tm')
-              window.monaco.editor.colorizeElement(el, { theme: 'tm' })
-            })
-          })
-        }) */
+        this.content = this.$md(ret)
       })
     }
   },
@@ -61,9 +47,5 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
-.tm {
-  display: block;
-  background-color: black;
-  padding: 10px;
-}
+
 </style>

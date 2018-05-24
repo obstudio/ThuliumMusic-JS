@@ -1,9 +1,9 @@
 <template>
-  <el-row :gutter="30">
-    <el-col :span="3" :offset="3" :style="{height}">
+  <el-row>
+    <el-col :span="3" :offset="0" :style="{height}">
         <tm-doc-directory :items="items" style="height: 100%"></tm-doc-directory>
     </el-col>
-    <el-col :span="9" :offset="3">
+    <el-col :span="15" :offset="3">
         <tm-doc-container :doc="doc"></tm-doc-container>
     </el-col>
   </el-row>
