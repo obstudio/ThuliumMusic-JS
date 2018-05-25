@@ -182,7 +182,7 @@ export default class Lexer {
       if (cap = this.rules.blockquote.exec(src)) {
         src = src.substring(cap[0].length)
         const length = this.tokens.length
-        cap = cap[0].replace(/^ *> ?/gm, '')
+        cap = cap[0].replace(/^ *[>?] ?/gm, '')
 
         // Pass `top` to keep the current
         // "toplevel" state. This is exactly
@@ -270,7 +270,7 @@ export default class Lexer {
         const items = []
         while ((match = r.exec(all)) !== null) items.push(match[1])
         this.tokens.push({
-          type: 'list',
+          type: 'List',
           inline: true,
           content: items
         })
@@ -420,7 +420,7 @@ const block = {
   hr: /^ {0,3}([-=])(\1|\.\1| \1)\2+ *(?:\n+|$)/,
   section: /^( *)(\^) [\s\S]+?(?:\n{2,}(?! )(?!\1\^ )\n*|\s*$)/,
   // section: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
-  heading: /^ *(#{1,6}) +([^\n]+?) *(#*) *(?:\n+|$)/,
+  heading: /^ *(#{1,6}) +([^\n]+?) *(?:(#+) *)?(?:\n+|$)/,
   // nptable: /^ *([^|\n ].*\|.*)\n *([-:]+ *\|[-| :]*)(?:\n((?:.*[^>\n ].*(?:\n|$))*)\n*|$)/,
   blockquote: /^( {0,3}[>?] ?(paragraph|[^\n]*)(?:\n|$))+/,
   list: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
@@ -428,7 +428,7 @@ const block = {
   def: /^ {0,3}\[((?!\s*])(?:\\[\[\]]|[^\[\]])+)]: *\n? *<?([^\s>]+)>?(?:(?: +\n? *| *\n *)((?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))))? *(?:\n+|$)/,
   // table: /^ *\|(.+)\n *\|?( *[-:]+[-| :]*)(?:\n((?: *[^>\n ].*(?:\n|$))*)\n*|$)/,
   table: /^([=<>*\t]+)\n((?:.+\n)*.*)(?:\n{2,}|$)/,
-  paragraph: /^([^\n]+(?:\n(?!hr|heading| {0,3}>)[^\n]+)*)/,
+  paragraph: /^([^\n]+(?:\n(?!hr|heading| {0,3}>)[^\n]+)*)/, // FIXME:buggy
   text: /^[^\n]+/
 }
 
@@ -457,7 +457,7 @@ block.blockquote = edit(block.blockquote)
 block.paragraph = edit(block.paragraph)
   .replace('(?!', '(?!' +
     block.fences.source.replace('\\1', '\\2') + '|' +
-    block.list.source.replace('\\1', '\\3') + '|')
+    block.list.source.replace('\\1', '\\5') + '|')
   .getRegex()
 
 Lexer.rules = block
